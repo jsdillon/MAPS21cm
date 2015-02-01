@@ -1,0 +1,35 @@
+
+# 			SPECIFICATIONS FOR JOINT MAPMAKING AND POWER SPECTRUM ESTIMATION PIPELINE
+
+#########################################################################################################
+[Array Settings]
+#########################################################################################################
+
+#FREQUENCY SETTINGS
+frequencyListFile: InstrumentData/frequencyList.dat
+
+#ANTENNA SETTINGS
+nAntennas: 19
+antennaPositionsFile: InstrumentData/antenna_positions.dat
+baselineListFile: InstrumentData/baselines.dat
+
+#BEAM SETTINGS
+polarizationList: X Y
+antennasHaveIdenticalBeams: true
+beamFileFormat: InstrumentData/Beams/beam_[antIndex]_[pol]_[pointIndex]_[freq].npz
+beamNSIDE = 64
+
+#########################################################################################################
+[Input Data Settings]
+#########################################################################################################
+
+test1: stuff
+
+#########################################################################################################
+[Mapmaking Specifications]
+#########################################################################################################
+
+
+#########################################################################################################
+[Power Spectrum Estimation Settings]
+#########################################################################################################
