@@ -8,6 +8,7 @@ import healpy as hp
 class PrimaryBeams:
 
     def __init__(self,s):
+        print "Now loading in information about the primary beams..."
         self.allBeams = {}
         for antPol in s.antPolList:
             for skyPol in s.skyPolList:

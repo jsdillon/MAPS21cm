@@ -8,12 +8,15 @@
 #FREQUENCY SETTINGS
 frequencyListFile: [MainDirectory]/InstrumentData/frequencyList.dat
 
-#ANTENNA SETTINGS
+#ANTENNA AND INSTRUMENT SETTINGS
 useOnlyUniqueBaselines: true
 antennaPositionsFile: [MainDirectory]/InstrumentData/antenna_positions.dat
 allBaselinesListFile: [MainDirectory]/InstrumentData/all_baselines.dat
+allBaselinePairsListFile: [MainDirectory]/InstrumentData/all_baseline_pairs.dat
 uniqueBaselinesListFile: [MainDirectory]/InstrumentData/unique_baselines.dat
 baselineRedundancyFile: [MainDirectory]/InstrumentData/redundancy.dat
+arrayLat: -30.706267
+arrayLong: 21.321317
 
 #BEAM SETTINGS
 antennasHaveIdenticalBeams: true
@@ -28,16 +31,43 @@ beamNSIDE = 64
 [Input Data Settings]
 #########################################################################################################
 
+#OBSERVATION SETTINGS
+LSTsFilename: [MainDirectory]/ObservationData/LSTs.dat
+PointingListFilename: [MainDirectory]/ObservationData/pointings.dat
+noiseFilename: [MainDirectory]/ObservationData/noisePerUniqueBaseline.npy
+
 #VISIBILITY SIMULATION SETTINGS
-simulateVisibilities: true
-#need to add info on the GSM
+simulateVisibilitiesWithGSM: true
+simulateVisibilitiesWithPointSources: true
+GSMlocation: [MainDirectory]/ObservationData/GSM/
+GSMnSide: 64
+pointSourceCatalogFilename: [MainDirectory]/ObservationData/mwacs_all_b3_140206.dat
+
+
+
 
 
 #########################################################################################################
 [Mapmaking Specifications]
 #########################################################################################################
 
+#FACET SETTINGS
+facetRA: 266.2417
+facetDec: -30.706267
+facetSize: 10.0
+MaximumAllowedAngleFromFacetCenterToZenith: 5.0
+
+#MAP AND PSF SETTINGS
+mapNSIDE: 64
+
+
+
+
+#POLARIZATION SETTINGS
 makeMapOfStokesIOnly: true
+
+
+#OUTPUT SETTINGS
 
 #########################################################################################################
 [Power Spectrum Estimation Settings]
