@@ -40,3 +40,11 @@ if useOnlyUniqueBaselines:
 else:
 	antennaNoise = np.ones((len(LSTs),len(antennaPositions))) * (singleBaselineVisibilityNoise**.5)
 	np.save(scriptDirectory + "/noisePerAntenna", antennaNoise)
+
+
+#TODO: 
+#	HERA will give me all the baselines and let me sum them
+#	HERA will give me weights (integers) as a funciton of time, frequency, and baseline
+#	I'll have to calculate antenna noise as a function of (LS) time
+# 	Assumes no other variation in noise temperature
+#	Weights cube will be a uv FITS like everything else

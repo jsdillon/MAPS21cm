@@ -8,8 +8,9 @@ import numpy as np
 import collections
 
 #HARD CODED SETTINGS
-Separation = 14;
-hexNum = 3;
+Separation = 14
+hexNum = 3
+precisionFactor = 100000
 
 positions = [];
 for row in range(hexNum-1,-(hexNum),-1):
@@ -23,9 +24,8 @@ baselines = []
 baselinePairs = []
 for ant1 in range(nAntennas):
 	for ant2 in range(ant1+1,nAntennas):
-		baselines.append((positions[ant1][0]-positions[ant2][0], positions[ant1][1]-positions[ant2][1], positions[ant1][2]-positions[ant2][2]))
+		baselines.append((int(precisionFactor*(positions[ant1][0]-positions[ant2][0])), int(precisionFactor*(positions[ant1][1]-positions[ant2][1])), int(precisionFactor*(positions[ant1][2]-positions[ant2][2]))))
 		baselinePairs.append((ant1, ant2))
-
 
 baselineDict = {}
 for b in baselines:
@@ -34,9 +34,12 @@ for b in baselines:
 	else:
 		baselineDict[b] = 1
 
+print "With", len(positions), "anntennas there are", len(baselineDict.items()), "unique baselines."
+
+
 scriptDirectory = os.path.dirname(os.path.abspath(__file__))
 np.savetxt(scriptDirectory + "/antenna_positions.dat",np.asarray(positions))
-np.savetxt(scriptDirectory + "/all_baselines.dat",np.asarray(baselines))
+np.savetxt(scriptDirectory + "/all_baselines.dat",np.asarray(baselines)/(1.0*precisionFactor))
 np.savetxt(scriptDirectory + "/all_baseline_pairs.dat",np.asarray(baselinePairs),fmt='%i')
-np.savetxt(scriptDirectory + "/unique_baselines.dat",np.asarray([uniqueBaseline[0] for uniqueBaseline in baselineDict.items()]))
+np.savetxt(scriptDirectory + "/unique_baselines.dat",np.asarray([uniqueBaseline[0] for uniqueBaseline in baselineDict.items()])/(1.0*precisionFactor))
 np.savetxt(scriptDirectory + "/redundancy.dat",np.asarray([uniqueBaseline[1] for uniqueBaseline in baselineDict.items()]),fmt='%i')

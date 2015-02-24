@@ -53,7 +53,8 @@ pointSourceCatalogFilename: [MainDirectory]/ObservationData/mwacs_all_b3_140206.
 
 #FACET SETTINGS
 facetRA: 266.2417
-facetDec: -30.706267
+facetDec: 45
+#-30.706267
 facetSize: 10.0
 MaximumAllowedAngleFromFacetCenterToZenith: 5.0
 
