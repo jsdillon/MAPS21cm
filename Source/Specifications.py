@@ -46,7 +46,7 @@ class Specifications:
         self.simulateVisibilitiesWithGSM = config.getboolean('Input Data Settings','simulateVisibilitiesWithGSM')
         self.simulateVisibilitiesWithPointSources = config.getboolean('Input Data Settings','simulateVisibilitiesWithPointSources')
         self.GSMlocation = config.get('Input Data Settings','GSMlocation').replace('[MainDirectory]',self.mainDirectory)
-        self.GSMnSide = config.getint('Input Data Settings','GSMnSide')
+        self.GSMNSIDE = config.getint('Input Data Settings','GSMNSIDE')
         self.pointSourceCatalogFilename = config.get('Input Data Settings','pointSourceCatalogFilename').replace('[MainDirectory]',self.mainDirectory)
 
         #FACET SETTINGS
@@ -56,6 +56,8 @@ class Specifications:
         self.facetDecinRad = self.facetDec * math.pi/180.0;
         self.facetSize = config.getfloat('Mapmaking Specifications','facetSize')
         self.MaximumAllowedAngleFromFacetCenterToZenith = config.getfloat('Mapmaking Specifications','MaximumAllowedAngleFromFacetCenterToZenith')
+        self.mapNSIDE = config.getint('Mapmaking Specifications', 'mapNSIDE')
+        self.mapPixels = 12 * self.mapNSIDE**2
 
         #Other calculations based on inputs
         self.nAntennas = len(self.antennaPositions)

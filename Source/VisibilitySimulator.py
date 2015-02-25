@@ -19,7 +19,7 @@ def VisibilitySimulator(s,PBs):
     #ephem.Equatorial(equaCoords[0,1],equaCoords[0,2])
     #%c = SkyCoord(equaCoords[0,1], equaCoords[0,2], frame='icrs', unit='rad')
     #print c
-    #for n in range(12*s.GSMnSide**2):
+    #for n in range(12*s.GSMNSIDE**2):
 
 
 

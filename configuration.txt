@@ -40,7 +40,7 @@ noiseFilename: [MainDirectory]/ObservationData/noisePerUniqueBaseline.npy
 simulateVisibilitiesWithGSM: true
 simulateVisibilitiesWithPointSources: true
 GSMlocation: [MainDirectory]/ObservationData/GSM/
-GSMnSide: 64
+GSMNSIDE: 16
 pointSourceCatalogFilename: [MainDirectory]/ObservationData/mwacs_all_b3_140206.dat
 
 
@@ -52,14 +52,14 @@ pointSourceCatalogFilename: [MainDirectory]/ObservationData/mwacs_all_b3_140206.
 #########################################################################################################
 
 #FACET SETTINGS
-facetRA: 266.2417
-facetDec: 45
+facetRA: 190
+facetDec: 0
 #-30.706267
 facetSize: 10.0
 MaximumAllowedAngleFromFacetCenterToZenith: 5.0
 
 #MAP AND PSF SETTINGS
-mapNSIDE: 64
+mapNSIDE: 16
 
 
 
