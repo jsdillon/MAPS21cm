@@ -9,6 +9,8 @@ class PrimaryBeams:
 
     def __init__(self,s):
         print "Now loading in information about the primary beams..."
+        if not s.antennasHaveIdenticalBeams:
+            print "\nWARNING: ALL PRIMARY BEAMS BEING LOADED AS IDENTICAL TO ANTENNA 0\n"
         self.allBeams = {}
         for antPol in s.antPolList:
             for skyPol in s.skyPolList:
@@ -23,7 +25,8 @@ class PrimaryBeams:
                         freq2Index = np.abs(allFrequencies - s.freq).argmin()
                         freq2 = allFrequencies[freq2Index]
                         
-                        filename = s.beamFileFormat.replace('[antIndex]',str(antIndex)).replace('[antPol]',antPol).replace('[skyPol]',skyPol).replace('[pointIndex]',str(pointIndex))
+                        filename = s.beamFileFormat.replace('[antIndex]',str(0)).replace('[antPol]',antPol).replace('[skyPol]',skyPol).replace('[pointIndex]',str(pointIndex))
+#                        filename = s.beamFileFormat.replace('[antIndex]',str(antIndex)).replace('[antPol]',antPol).replace('[skyPol]',skyPol).replace('[pointIndex]',str(pointIndex))
                         key = str(antIndex) + ";" + str(antPol) + ";" + str(skyPol) + ";" + str(pointIndex)
                         beam1 = np.load(filename.replace('[freq]',"{:1.6f}".format(float(s.beamFreqList[freq1Index]))));
                         beam2 = np.load(filename.replace('[freq]',"{:1.6f}".format(float(s.beamFreqList[freq2Index]))));
@@ -39,7 +42,7 @@ class PrimaryBeams:
                     self.allBeams[keyOut] = self.allBeams[keyIn] * self.allBeams[keyIn].conj()
 
     #This function returns beam XX, YY, etc. as a numpy array representing a healpix map
-    def beamSq(self,antPol,skyPol,point = 0):	
+    def beamSquared(self,antPol,skyPol,point = 0):	
         try:
             return self.allBeams[str(antPol) + str(antPol) + str(skyPol) + str(skyPol) + str(point)]
         except:

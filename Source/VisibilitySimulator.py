@@ -6,74 +6,40 @@ import healpy as hp
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 import ephem
-#from astropy import units as u
-#from astropy.coordinates import SkyCoord
+import Source.MapmakerHelper as mmh
 
 
-def VisibilitySimulator(s,PBs):
-    print "testing VisibilitySimulator"
-
-
+def VisibilitySimulator(s,g,PBs):
+    print "Now simulating visibilities..."
+    visibilities = np.zeros([len(s.LSTs),len(s.baselines)],dtype=complex)
     
-
-    #ephem.Equatorial(equaCoords[0,1],equaCoords[0,2])
-    #%c = SkyCoord(equaCoords[0,1], equaCoords[0,2], frame='icrs', unit='rad')
-    #print c
-    #for n in range(12*s.GSMNSIDE**2):
-
-
-
-    #hp.get_inter_val()
-
-
-    #hp.mollview(GSM, title="Mollview image RING", norm="log")
-    #plt.show()
-
-# //Rebins the GSM into equatorial coordinates, making for an easier comparison between the true sky
-# Healpix_Map<double> computeGSMInEquatorialCoordinates(vector<int>& extendedHealpixIndices){
-#     int GSMresTemp = GSMres;
-#     if (GSMres > 512) GSMres = 512;
-#     Healpix_Map<double> galacticGSM = computeGSM();
-#     GSMres = GSMresTemp;
-
-#     Healpix_Map<double> equatorialGSM(int(round(log(GSMres)/log(2))), RING);
-#     for (int n = 0; n < 12*GSMres*GSMres; n++){
-#         pointing thisPoint = equatorialGSM.pix2ang(n);
-#         equaPoint thisEquaPoint = convertToEquaPoint(thisPoint);
-#         //equaPoint thisEquaPoint(thisPoint.phi, pi/2-thisPoint.theta);
-#         pointing thisGalPoint = convertEquaPointToGal(thisEquaPoint);
-#         equatorialGSM[n] = galacticGSM.interpolated_value(thisGalPoint);
-#     }
-
-#     double sum = 0;
-#     for (int n = 0; n < 12*GSMres*GSMres; n++) sum += equatorialGSM[n];
-#     cout << "Average temperature after rebinning is " << sum / 12 / GSMres / GSMres << " K." << endl;
-
-#     Healpix_Map<double> galacticGSMlowres = emptyHealpixMap();
-#     if (GSMres > NSIDE){
-#         galacticGSMlowres.Import_degrade(equatorialGSM);    
-#     } else {
-#         galacticGSMlowres = equatorialGSM;
-#     }
-    
-#     /*vector<double> wholeGSM(NSIDE*NSIDE*12,0.0);
-#     for (int n = 0; n < NSIDE*NSIDE*12; n++) wholeGSM[n] = equatorialGSM[n];
-#     exportVector(wholeGSM, NSIDE*NSIDE*12, "wholeGSM.dat"); */
+    #TODO: this ignores polarization and differing primary beams
+    if s.simulateVisibilitiesWithGSM:
+        #Compute GSM from 3 principal components appropriately weighted and then interpolate onto rotated equatorial coordinates
+        GSMComponents = np.asarray([hp.read_map(s.GSMlocation + "gsm" + str(i+1) + ".fits" + str(s.GSMNSIDE),verbose=False,) for i in range(3)])
+        components = np.loadtxt(s.GSMlocation + "components.dat")
+        temp = 10**(interp1d(np.log10(components[:,0]), np.log10(components[:,1]), kind='cubic')(np.log10(s.freq))) #cubic spline in log(T)
+        weights = np.asarray([interp1d(components[:,0], components[:,i+2], kind='linear')(s.freq) for i in range(3)]) #linear interpolation for weights
+        GSM = temp*np.dot(weights,GSMComponents)
+        interpoltedGSMRotated = hp.get_interp_val(GSM,-g.galCoords.b.radian+np.pi/2, np.asarray(g.galCoords.l.radian))
+        hp.mollview(np.log10(interpoltedGSMRotated), title="GSM in Rotated Equatorial Coordinates")
 
 
-#     vector<double> facetMap(nPixelsExtended, 0.0);
-#     for (int n = 0; n < nPixelsExtended; n++) facetMap[n] = galacticGSMlowres[extendedHealpixIndices[n]];
-#     exportVector(facetMap, nPixelsExtended, trueSkyFilename);
-#     string onlyGSMFilename = dataProductFilePrefix + "trueSkyOnlyGSM.dat";
-#     exportVector(facetMap, nPixelsExtended, onlyGSMFilename);
-#     return equatorialGSM;
-# }
+#TODO: investigate temperature/flux normalization        
+        
+        
+#TODO: FIX WHAT HAPPENS WHEN GSM AND MAP RESOLUTION AREN'T THE SAME RESOLUTION  
+        
+        for t in range(len(s.LSTs)):
+            pixelAlts, pixelAzs = mmh.convertEquatorialToHorizontal(s,g.pixelRAs,g.pixelDecs,s.LSTs[t])
+            rHatVectors = mmh.convertAltAzToCartesian(pixelAlts,pixelAzs)
+            primaryBeam = hp.get_interp_val(PBs.beamSquared("X","x",s.pointings[0]), np.pi/2-pixelAlts, pixelAzs)
+            for b in range(len(s.baselines)):
+                exponent = np.exp(-2j*np.pi*np.dot(rHatVectors,s.baselines[b]))
+                visibilities[t,b] += np.sum(GSM * primaryBeam * exponent) * 4*np.pi / len(GSM)
+                
+#    if s.simulateVisibilitiesWithPointSources:
+        #Load PS catalog
+        
 
-
-
-
-
-    #Psuedocode:
-    #Compute GSM
-    #Put GSM into equatorial coordinates
-    #Calculate Visibilities
+    return visibilities

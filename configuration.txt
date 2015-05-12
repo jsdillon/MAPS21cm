@@ -10,6 +10,7 @@ frequencyListFile: [MainDirectory]/InstrumentData/frequencyList.dat
 
 #ANTENNA AND INSTRUMENT SETTINGS
 useOnlyUniqueBaselines: true
+#WARNING: For now, setting this to false will break things.
 antennaPositionsFile: [MainDirectory]/InstrumentData/antenna_positions.dat
 allBaselinesListFile: [MainDirectory]/InstrumentData/all_baselines.dat
 allBaselinePairsListFile: [MainDirectory]/InstrumentData/all_baseline_pairs.dat
@@ -20,6 +21,7 @@ arrayLong: 21.321317
 
 #BEAM SETTINGS
 antennasHaveIdenticalBeams: true
+#WARNING: For now, setting this to false will break things.
 antPolList: X Y
 skyPolList: x y
 nPointings: 1
@@ -34,7 +36,10 @@ beamNSIDE = 64
 #OBSERVATION SETTINGS
 LSTsFilename: [MainDirectory]/ObservationData/LSTs.dat
 PointingListFilename: [MainDirectory]/ObservationData/pointings.dat
-noiseFilename: [MainDirectory]/ObservationData/noisePerUniqueBaseline.npy
+PointingCenterDictionaryFilename: [MainDirectory]/ObservationData/pointing_centers.p
+noisePerUniqueBaselineFilename: [MainDirectory]/ObservationData/noisePerUniqueBaseline.npy
+noisePerAntennaFilename: [MainDirectory]/ObservationData/noisePerUniqueBaseline.npy
+#   loads the relevant file from the above two depending on useOnlyUniqueBaselines
 
 #VISIBILITY SIMULATION SETTINGS
 simulateVisibilitiesWithGSM: true
@@ -42,6 +47,9 @@ simulateVisibilitiesWithPointSources: true
 GSMlocation: [MainDirectory]/ObservationData/GSM/
 GSMNSIDE: 16
 pointSourceCatalogFilename: [MainDirectory]/ObservationData/mwacs_all_b3_140206.dat
+pointSourceReferenceFreq = 180
+pointSourceBeamWeightedFluxLimit: 1
+#in Jy
 
 
 
@@ -52,11 +60,11 @@ pointSourceCatalogFilename: [MainDirectory]/ObservationData/mwacs_all_b3_140206.
 #########################################################################################################
 
 #FACET SETTINGS
-facetRA: 190
-facetDec: 0
-#-30.706267
+facetRA: 50.6737
+#266.2417
+facetDec: -30.706267
 facetSize: 10.0
-MaximumAllowedAngleFromFacetCenterToZenith: 5.0
+MaximumAllowedAngleFromFacetCenterToZenith: 1.0
 
 #MAP AND PSF SETTINGS
 mapNSIDE: 16

@@ -5,6 +5,8 @@ import ConfigParser
 import numpy as np
 import math
 import ephem
+import pickle
+import scipy.constants as const
 
 #This class takes the location of the configuration file and loads relevant specs as attributes to the object
 class Specifications:
@@ -18,9 +20,12 @@ class Specifications:
         #ANTENNA AND INSTRUMENT SETTINGS
         self.useOnlyUniqueBaselines = config.getboolean('Array Settings','useOnlyUniqueBaselines')
         self.antennaPositions = np.loadtxt(config.get('Array Settings','antennaPositionsFile').replace('[MainDirectory]',self.mainDirectory))
-        self.allBaselines = np.loadtxt(config.get('Array Settings','allBaselinesListFile').replace('[MainDirectory]',self.mainDirectory))
-        self.uniqueBaselines = np.loadtxt(config.get('Array Settings','uniqueBaselinesListFile').replace('[MainDirectory]',self.mainDirectory))
-        self.baselineRedundancies = np.loadtxt(config.get('Array Settings','baselineRedundancyFile').replace('[MainDirectory]',self.mainDirectory))
+        if self.useOnlyUniqueBaselines:
+            self.baselines = np.loadtxt(config.get('Array Settings','uniqueBaselinesListFile').replace('[MainDirectory]',self.mainDirectory))
+            self.baselineRedundancies = np.loadtxt(config.get('Array Settings','baselineRedundancyFile').replace('[MainDirectory]',self.mainDirectory))
+        else:
+            self.baselines = np.loadtxt(config.get('Array Settings','allBaselinesListFile').replace('[MainDirectory]',self.mainDirectory))
+            self.baselineRedundancies = np.ones(self.baselines.shape[0]) #since no baselines are redundant
         self.arrayLat = config.getfloat('Array Settings','arrayLat')
         self.arrayLatInRad = self.arrayLat * math.pi/180.0;
         self.arrayLong = config.getfloat('Array Settings','arrayLong')
@@ -31,23 +36,29 @@ class Specifications:
         if (self.useOnlyUniqueBaselines and not self.antennasHaveIdenticalBeams):
             print "\nWARNING: Cannot use group baselines identically if the beams are not identical.\n"
         self.antPolList = config.get('Array Settings','antPolList').split()
-        self.skyPolList = config.get('Array Settings','skyPolList').split()
-        self.nPointings = config.getint('Array Settings','nPointings')
+        self.skyPolList = config.get('Array Settings','skyPolList').split()        
         self.beamFreqList = config.get('Array Settings','beamFreqList').split()
         self.beamFileFormat = config.get('Array Settings','beamFileFormat').replace('[MainDirectory]',self.mainDirectory)
         self.beamNSIDE = config.getint('Array Settings','beamNSIDE')    
         
         #OBSERVATION SETTINGS
         self.LSTs = np.loadtxt(config.get('Input Data Settings','LSTsFilename').replace('[MainDirectory]',self.mainDirectory))
-        self.pointings = np.loadtxt(config.get('Input Data Settings','PointingListFilename').replace('[MainDirectory]',self.mainDirectory))
-        self.noiseList = np.load(config.get('Input Data Settings','noiseFilename').replace('[MainDirectory]',self.mainDirectory))
+        self.useThisLST = np.ones(len(self.LSTs))
+        self.pointings = np.loadtxt(config.get('Input Data Settings','PointingListFilename').replace('[MainDirectory]',self.mainDirectory)).astype(int)
+        self.pointingCenters = pickle.load(open(config.get('Input Data Settings','PointingCenterDictionaryFilename').replace('[MainDirectory]',self.mainDirectory),'r'))
+        if self.useOnlyUniqueBaselines:
+            self.noisePerUniqueBaseline = np.load(config.get('Input Data Settings','noisePerUniqueBaselineFilename').replace('[MainDirectory]',self.mainDirectory))
+        else:
+            self.noisePerAntenna = np.load(config.get('Input Data Settings','noisePerAntennaFilename').replace('[MainDirectory]',self.mainDirectory))
 
         #VISIBILITY SIMULATION SETTINGS
         self.simulateVisibilitiesWithGSM = config.getboolean('Input Data Settings','simulateVisibilitiesWithGSM')
         self.simulateVisibilitiesWithPointSources = config.getboolean('Input Data Settings','simulateVisibilitiesWithPointSources')
         self.GSMlocation = config.get('Input Data Settings','GSMlocation').replace('[MainDirectory]',self.mainDirectory)
         self.GSMNSIDE = config.getint('Input Data Settings','GSMNSIDE')
-        self.pointSourceCatalogFilename = config.get('Input Data Settings','pointSourceCatalogFilename').replace('[MainDirectory]',self.mainDirectory)
+        self.pointSourceCatalog = np.loadtxt(config.get('Input Data Settings','pointSourceCatalogFilename').replace('[MainDirectory]',self.mainDirectory))
+        self.pointSourceReferenceFreq = config.getfloat('Input Data Settings','pointSourceReferenceFreq')
+        self.pointSourceBeamWeightedFluxLimit = config.getfloat('Input Data Settings','pointSourceBeamWeightedFluxLimit')
 
         #FACET SETTINGS
         self.facetRA = config.getfloat('Mapmaking Specifications','facetRA')
@@ -61,3 +72,5 @@ class Specifications:
 
         #Other calculations based on inputs
         self.nAntennas = len(self.antennaPositions)
+        self.nPointings = len(self.pointingCenters)
+        self.convertJyToKFactor = (const.c)**2 / (2 * const.k * (self.freq*1e6)**2 * 1e26) #multiply by this number to convert Jy to K

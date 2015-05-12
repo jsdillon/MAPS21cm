@@ -6,6 +6,7 @@
 import os
 import numpy as np
 import ConfigParser
+import pickle
 
 #HARD CODED SETTINGS
 integrationTime = 10 #seconds
@@ -25,12 +26,18 @@ allBaselines = np.loadtxt(config.get('Array Settings','allBaselinesListFile').re
 uniqueBaselines = np.loadtxt(config.get('Array Settings','uniqueBaselinesListFile').replace('[MainDirectory]',mainDirectory))
 baselineRedundancies = np.loadtxt(config.get('Array Settings','baselineRedundancyFile').replace('[MainDirectory]',mainDirectory))
 
+
 #all beams taken to be pointed to position 0 for now
 if antennasHaveIdenticalBeams: #here we assume that identical beams also means identical pointings at any given time
 	pointings = np.zeros(np.shape(LSTs))
 else:
 	pointings = np.zeros((len(LSTs),len(antennaPositions)))
 np.savetxt(scriptDirectory + "/pointings.dat",pointings,fmt='%i')
+
+pointingCenters = {0: [np.pi/2, 0]}
+pickle.dump(pointingCenters, open('pointing_centers.p', 'w'))
+
+#all beams are taken to be pointed at the zenith (alt = pi/2, az = 0)
 
 # If we're binning together redundant baselines, then we want to know the noise on that baseline during the integration
 if useOnlyUniqueBaselines:

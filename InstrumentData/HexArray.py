@@ -1,16 +1,15 @@
 # TEST CODE FOR JOINT MAPMAKING AND POWER SPECTRUM PIPELINE
 # by Josh Dillon
 #
-# This code generates a file of antenna positions and a files with baselines, baseline info, and redudnancies
+# This code generates a file of antenna positions and a files with baselines, baseline info, and redundancies
 
 import os
 import numpy as np
-import collections
 
 #HARD CODED SETTINGS
-Separation = 14
+Separation = 14.6
 hexNum = 3
-precisionFactor = 100000
+precisionFactor = 1000000
 
 positions = [];
 for row in range(hexNum-1,-(hexNum),-1):
@@ -24,7 +23,7 @@ baselines = []
 baselinePairs = []
 for ant1 in range(nAntennas):
 	for ant2 in range(ant1+1,nAntennas):
-		baselines.append((int(precisionFactor*(positions[ant1][0]-positions[ant2][0])), int(precisionFactor*(positions[ant1][1]-positions[ant2][1])), int(precisionFactor*(positions[ant1][2]-positions[ant2][2]))))
+		baselines.append((int(np.round(precisionFactor*(positions[ant1][0]-positions[ant2][0]))), int(np.round(precisionFactor*(positions[ant1][1]-positions[ant2][1]))), int(np.round(precisionFactor*(positions[ant1][2]-positions[ant2][2])))))
 		baselinePairs.append((ant1, ant2))
 
 baselineDict = {}
@@ -34,8 +33,7 @@ for b in baselines:
 	else:
 		baselineDict[b] = 1
 
-print "With", len(positions), "anntennas there are", len(baselineDict.items()), "unique baselines."
-
+print "With", len(positions), "antennas there are", len(baselineDict.items()), "unique baselines."
 
 scriptDirectory = os.path.dirname(os.path.abspath(__file__))
 np.savetxt(scriptDirectory + "/antenna_positions.dat",np.asarray(positions))

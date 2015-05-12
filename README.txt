@@ -6,7 +6,7 @@ A work in progress.
 
 
 Baselines:
-Baseline vectors are written in ASCII and expressed 
+Baseline vectors are written in ASCII and expressed as (x,y,z) where +x is East, +y is North, and +z is Up
 
 
 Polarization Convention:
@@ -17,7 +17,10 @@ Each feed is characterized by a complex beam given by the antenna index (0 index
 beamFileFormat: InstrumentData/Beams/beam_[antIndex]_[antPol]_[skyPol]_[pointIndex]_[freq].npz
 
 
-
+Need to do some work on the cases where baselines are not redundant and/or antennas are not identical...basically I don't want to implement this now but I do want to stay very general
 
 Possible Improvements:
 -Right now, beams are linearly interpolated between frequencies of given beams. We might want to do better than that.
+-TODO: Check if primary beam is input correctly into healpix in terms of EW/NS orientation
+
+
