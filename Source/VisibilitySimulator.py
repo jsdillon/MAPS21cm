@@ -10,25 +10,24 @@ import Source.MapmakerHelper as mmh
 from Source.GlobalSkyModel import GlobalSkyModel as gsm
 
 
-def VisibilitySimulator(s,g,PBs):
+def VisibilitySimulator(s,PBs):
     print "Now simulating visibilities..."
+    geoGSM = mmh.Geometry(s,True)
     visibilities = np.zeros([len(s.LSTs),len(s.baselines)],dtype=complex)
     
     #TODO: this ignores polarization and differing primary beams
     if s.simulateVisibilitiesWithGSM:
         GSM = gsm(s.freq, s.GSMlocation, s.GSMNSIDE)
         #interpolate onto rotated equatorial coordinates
-        interpoltedGSMRotated = hp.get_interp_val(GSM.hpMap,-g.galCoords.b.radian+np.pi/2, np.asarray(g.galCoords.l.radian))
+        interpoltedGSMRotated = hp.get_interp_val(GSM.hpMap,-geoGSM.galCoords.b.radian+np.pi/2, np.asarray(geoGSM.galCoords.l.radian))
         hp.mollview(np.log10(interpoltedGSMRotated), title="GSM in Rotated Equatorial Coordinates")
-
+    
+        
 
 #TODO: investigate temperature/flux normalization        
         
-        
-#TODO: FIX WHAT HAPPENS WHEN GSM AND MAP RESOLUTION AREN'T THE SAME RESOLUTION  
-        
         for t in range(len(s.LSTs)):
-            pixelAlts, pixelAzs = mmh.convertEquatorialToHorizontal(s,g.pixelRAs,g.pixelDecs,s.LSTs[t])
+            pixelAlts, pixelAzs = mmh.convertEquatorialToHorizontal(s,geoGSM.pixelRAs,geoGSM.pixelDecs,s.LSTs[t])
             rHatVectors = mmh.convertAltAzToCartesian(pixelAlts,pixelAzs)
             primaryBeam = hp.get_interp_val(PBs.beamSquared("X","x",s.pointings[0]), np.pi/2-pixelAlts, pixelAzs)
             for b in range(len(s.baselines)):

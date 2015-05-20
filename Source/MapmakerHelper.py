@@ -8,23 +8,28 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 import matplotlib.pyplot as plt
 
-# This class figures out the RA, Dec, and Galactic Coordinates of every pixel in the map 
-# where the facet center is rotated to lie on the horizon.
+# This class figures out the RA, Dec, and Galactic Coordinates of every pixel in the map where the facet center 
+# is rotated to lie on the horizon. Detaults to the map resolution, but can also be done for the GSM resolution used.
 class Geometry:
-    def __init__(self,s):
-        healpixCoords = np.transpose(np.asarray(hp.pix2ang(s.mapNSIDE,np.arange(s.mapPixels))))        
-        
+    def __init__(self, s, atResolutionForSimulation = False):
+        if atResolutionForSimulation:
+            self.NSIDE = s.GSMNSIDE
+        else:
+            self.NSIDE = s.mapNSIDE
+        self.mapPixels = 12 * self.NSIDE**2
+
+        healpixCoords = np.transpose(np.asarray(hp.pix2ang(self.NSIDE,np.arange(self.mapPixels))))                
         self.originalPixelRAs = healpixCoords[:,1]
         self.originalPixelDecs = -healpixCoords[:,0] + np.pi/2
         self.originalGalCoords = SkyCoord(frame="icrs", ra=self.originalPixelRAs*u.rad, dec=self.originalPixelDecs*u.rad).transform_to("galactic")                
-        originalPixelVectors = [ np.array([np.cos(self.originalPixelDecs[n]) * np.cos(self.originalPixelRAs[n]), np.cos(self.originalPixelDecs[n]) * np.sin(self.originalPixelRAs[n]), np.sin(self.originalPixelDecs[n])]) for n in range(12*s.GSMNSIDE**2)]
+        originalPixelVectors = [ np.array([np.cos(self.originalPixelDecs[n]) * np.cos(self.originalPixelRAs[n]), np.cos(self.originalPixelDecs[n]) * np.sin(self.originalPixelRAs[n]), np.sin(self.originalPixelDecs[n])]) for n in range(self.mapPixels)]
         
         rotateToPrimeMeridian = np.array([[np.cos(s.facetRAinRad), -np.sin(s.facetRAinRad), 0], [np.sin(s.facetRAinRad), np.cos(s.facetRAinRad), 0],[0, 0, 1]])
         rotateToEquator = np.array([[np.cos(-s.facetDecinRad), 0, np.sin(-s.facetDecinRad)], [0, 1, 0], [-np.sin(-s.facetDecinRad), 0, np.cos(-s.facetDecinRad)]])
-        rotatedVectors = [np.dot(rotateToPrimeMeridian, np.dot(rotateToEquator,originalPixelVectors[n])) for n in range(s.mapPixels)]
+        rotatedVectors = [np.dot(rotateToPrimeMeridian, np.dot(rotateToEquator,originalPixelVectors[n])) for n in range(self.mapPixels)]
         
-        self.pixelDecs = np.asarray([np.arcsin(rotatedVectors[n][2]) for n in range(s.mapPixels)])
-        self.pixelRAs = np.asarray([np.arctan2(rotatedVectors[n][1],rotatedVectors[n][0]) for n in range(s.mapPixels)])
+        self.pixelDecs = np.asarray([np.arcsin(rotatedVectors[n][2]) for n in range(self.mapPixels)])
+        self.pixelRAs = np.asarray([np.arctan2(rotatedVectors[n][1],rotatedVectors[n][0]) for n in range(self.mapPixels)])
         self.pixelRAs[self.pixelRAs < 0] = self.pixelRAs[self.pixelRAs < 0] + 2*np.pi
         self.galCoords = SkyCoord(frame="icrs", ra=self.pixelRAs*u.rad, dec=self.pixelDecs*u.rad).transform_to("galactic")
         
@@ -45,10 +50,8 @@ def convertAltAzToCartesian(alts, azs):
     return np.transpose(np.asarray([np.sin(azs)*np.cos(alts), np.cos(azs)*np.cos(alts), np.sin(alts)]))
 
 
-
-
 # Calculates which LSTs are close enough to the facet center to be used in making the map, eliminating the rest from loaded files 
-def CutOutUnusedLSTs(s,g):
+def CutOutUnusedLSTs(s):
     for t in range(len(s.LSTs)):
         facetCenterAlt, facetCenterAz = convertEquatorialToHorizontal(s, s.facetRAinRad, s.facetDecinRad, s.LSTs[t])        
         if s.antennasHaveIdenticalBeams:
@@ -76,4 +79,6 @@ def DecideWhichSourcesToInclude(s,PBs):
     primaryBeamWeights = hp.get_interp_val(PBs.beamSquared("X","x",s.pointings[middleLSTindex]), np.pi/2-psAlts, psAzs)
     beamWeightedFluxes = primaryBeamWeights * s.pointSourceCatalog[:,2] * (s.freq/s.pointSourceReferenceFreq)**(-s.pointSourceCatalog[:,3])
     s.pointSourceCatalog = s.pointSourceCatalog[beamWeightedFluxes>s.pointSourceBeamWeightedFluxLimit, :]
+
+
     

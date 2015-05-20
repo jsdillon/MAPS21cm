@@ -45,7 +45,7 @@ noisePerAntennaFilename: [MainDirectory]/ObservationData/noisePerUniqueBaseline.
 simulateVisibilitiesWithGSM: true
 simulateVisibilitiesWithPointSources: true
 GSMlocation: [MainDirectory]/ObservationData/GSM/
-GSMNSIDE: 16
+GSMNSIDE: 32
 pointSourceCatalogFilename: [MainDirectory]/ObservationData/mwacs_all_b3_140206.dat
 pointSourceReferenceFreq = 180
 pointSourceBeamWeightedFluxLimit: 1

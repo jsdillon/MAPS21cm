@@ -16,10 +16,10 @@ freq = 150
 
 scriptDirectory = os.path.dirname(os.path.abspath(__file__))
 s = Specifications(scriptDirectory, "/configuration.txt",freq)
-g = mmh.Geometry(s)
+geo = mmh.Geometry(s)
 PBs = PrimaryBeams(s)
 
-mmh.CutOutUnusedLSTs(s,g)
+mmh.CutOutUnusedLSTs(s)
 mmh.DecideWhichSourcesToInclude(s,PBs)
 
 
@@ -30,7 +30,7 @@ mmh.DecideWhichSourcesToInclude(s,PBs)
 	#field specifications
 
 if s.simulateVisibilitiesWithGSM or s.simulateVisibilitiesWithPointSources:
-    visibilities = VisibilitySimulator(s,g,PBs)
+    visibilities = VisibilitySimulator(s,PBs)
 else:
     visibilties = mmh.LoadVisibilities(s)
 visibilities *= s.convertJyToKFactor
