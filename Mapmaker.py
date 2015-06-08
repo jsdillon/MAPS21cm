@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 from Source.Specifications import Specifications
 from Source.PrimaryBeams import PrimaryBeams
 from Source.VisibilitySimulator import VisibilitySimulator
-import Source.MapmakerHelper as mmh
+from Source import Geometry
+from Source.PointSourceCatalog import PointSourceCatalog
 import scipy.constants as const
 plt.close("all")
 
@@ -16,11 +17,15 @@ freq = 150
 
 scriptDirectory = os.path.dirname(os.path.abspath(__file__))
 s = Specifications(scriptDirectory, "/configuration.txt",freq)
-geo = mmh.Geometry(s)
-PBs = PrimaryBeams(s)
+Geometry.CutOutUnusedLSTs(s)
+coords = Geometry.Coordinates(s)
 
-mmh.CutOutUnusedLSTs(s)
-mmh.DecideWhichSourcesToInclude(s,PBs)
+
+PBs = PrimaryBeams(s)
+ps = PointSourceCatalog(s,PBs)
+
+
+
 
 
 
@@ -32,7 +37,8 @@ mmh.DecideWhichSourcesToInclude(s,PBs)
 if s.simulateVisibilitiesWithGSM or s.simulateVisibilitiesWithPointSources:
     visibilities = VisibilitySimulator(s,PBs)
 else:
-    visibilties = mmh.LoadVisibilities(s)
+    print "this is not done"    
+    #visibilties = mmh.LoadVisibilities(s)
 visibilities *= s.convertJyToKFactor
 
 plt.figure()

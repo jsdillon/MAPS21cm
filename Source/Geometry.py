@@ -8,9 +8,9 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 import matplotlib.pyplot as plt
 
-# This class figures out the RA, Dec, and Galactic Coordinates of every pixel in the map where the facet center 
-# is rotated to lie on the horizon. Detaults to the map resolution, but can also be done for the GSM resolution used.
-class Geometry:
+
+class Coordinates:
+    """This class figures out the RA, Dec, and Galactic Coordinates of every pixel in the map where the facet center is rotated to lie on the horizon. Detaults to the map resolution, but can also be done for the GSM resolution used."""
     def __init__(self, s, atResolutionForSimulation = False):
         if atResolutionForSimulation:
             self.NSIDE = s.GSMNSIDE
@@ -32,23 +32,20 @@ class Geometry:
         self.pixelRAs = np.asarray([np.arctan2(rotatedVectors[n][1],rotatedVectors[n][0]) for n in range(self.mapPixels)])
         self.pixelRAs[self.pixelRAs < 0] = self.pixelRAs[self.pixelRAs < 0] + 2*np.pi
         self.galCoords = SkyCoord(frame="icrs", ra=self.pixelRAs*u.rad, dec=self.pixelDecs*u.rad).transform_to("galactic")
-        
-        self.pointSourceRAs = np.empty(1)
-        self.pointSourceDecs = np.empty(1)
-        
-        
-            
+
+                        
 # Convert RAs and Decs in radians to altitudes and azimuths in radians, given an LST and array location in the specs object
 def convertEquatorialToHorizontal(s,RAs,decs,LST):
+    """ Convert RAs and Decs in radians to altitudes and azimuths in radians, given an LST and array location in the specs object """
     lha = np.pi/12.0*LST - RAs #in radians
     altitudes = np.arcsin(np.sin(s.arrayLatInRad) * np.sin(decs) + np.cos(s.arrayLatInRad) * np.cos(decs) * np.cos(lha))
     azimuths = np.arctan2( np.sin(lha) * np.cos(decs), np.cos(lha) * np.cos(decs) * np.sin(s.arrayLatInRad) - np.sin(decs) * np.cos(s.arrayLatInRad)) + np.pi;	
     return altitudes, azimuths
 
-#Convert list of altitudes and azimuths to cartesian coordinates    
-def convertAltAzToCartesian(alts, azs):
-    return np.transpose(np.asarray([np.sin(azs)*np.cos(alts), np.cos(azs)*np.cos(alts), np.sin(alts)]))
 
+def convertAltAzToCartesian(alts, azs):
+    """ Convert list of altitudes and azimuths to cartesian coordinates."""        
+    return np.transpose(np.asarray([np.sin(azs)*np.cos(alts), np.cos(azs)*np.cos(alts), np.sin(alts)]))
 
 # Calculates which LSTs are close enough to the facet center to be used in making the map, eliminating the rest from loaded files 
 def CutOutUnusedLSTs(s):
@@ -69,16 +66,4 @@ def CutOutUnusedLSTs(s):
         s.noisePerAntenna = s.noisePerAntenna[s.useThisLST == True]
     print "Observations of " + str(int(np.sum(s.useThisLST))) + " LSTs are within " + str(s.MaximumAllowedAngleFromFacetCenterToZenith) + " degrees of the facet center."
 
-def LoadVisibilities(s):
-    print "LoadVisibilities() is not written..."
 
-# Determines if the beam-weighted flux of each point source is above the limit and deletes it from the catalog if it isn't
-def DecideWhichSourcesToInclude(s,PBs):
-    middleLSTindex = int(math.floor(len(s.LSTs)/2.0))
-    psAlts, psAzs = convertEquatorialToHorizontal(s, s.pointSourceCatalog[:,0] * 2*np.pi/360, s.pointSourceCatalog[:,1] * 2*np.pi/360, s.LSTs[middleLSTindex])
-    primaryBeamWeights = hp.get_interp_val(PBs.beamSquared("X","x",s.pointings[middleLSTindex]), np.pi/2-psAlts, psAzs)
-    beamWeightedFluxes = primaryBeamWeights * s.pointSourceCatalog[:,2] * (s.freq/s.pointSourceReferenceFreq)**(-s.pointSourceCatalog[:,3])
-    s.pointSourceCatalog = s.pointSourceCatalog[beamWeightedFluxes>s.pointSourceBeamWeightedFluxLimit, :]
-
-
-    

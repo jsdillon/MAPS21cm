@@ -41,15 +41,17 @@ noisePerUniqueBaselineFilename: [MainDirectory]/ObservationData/noisePerUniqueBa
 noisePerAntennaFilename: [MainDirectory]/ObservationData/noisePerUniqueBaseline.npy
 #   loads the relevant file from the above two depending on useOnlyUniqueBaselines
 
+#POINT SOURCE CATALOG SETTINGS
+pointSourceCatalogFilename: [MainDirectory]/ObservationData/mwacs_all_b3_140206.dat
+pointSourceReferenceFreq = 180
+pointSourceBeamWeightedFluxLimit: 1
+#   in Jy
+
 #VISIBILITY SIMULATION SETTINGS
 simulateVisibilitiesWithGSM: true
 simulateVisibilitiesWithPointSources: true
 GSMlocation: [MainDirectory]/ObservationData/GSM/
 GSMNSIDE: 32
-pointSourceCatalogFilename: [MainDirectory]/ObservationData/mwacs_all_b3_140206.dat
-pointSourceReferenceFreq = 180
-pointSourceBeamWeightedFluxLimit: 1
-#in Jy
 
 
 

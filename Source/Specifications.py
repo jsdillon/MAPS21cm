@@ -51,15 +51,18 @@ class Specifications:
         else:
             self.noisePerAntenna = np.load(config.get('Input Data Settings','noisePerAntennaFilename').replace('[MainDirectory]',self.mainDirectory))
 
+        #POINT SOURCE CATALOG SETTINGS
+        self.pointSourceCatalogFilename = config.get('Input Data Settings','pointSourceCatalogFilename').replace('[MainDirectory]',self.mainDirectory)
+        self.pointSourceReferenceFreq = config.getfloat('Input Data Settings','pointSourceReferenceFreq')
+        self.pointSourceBeamWeightedFluxLimit = config.getfloat('Input Data Settings','pointSourceBeamWeightedFluxLimit')
+        
+        
         #VISIBILITY SIMULATION SETTINGS
         self.simulateVisibilitiesWithGSM = config.getboolean('Input Data Settings','simulateVisibilitiesWithGSM')
         self.simulateVisibilitiesWithPointSources = config.getboolean('Input Data Settings','simulateVisibilitiesWithPointSources')
         self.GSMlocation = config.get('Input Data Settings','GSMlocation').replace('[MainDirectory]',self.mainDirectory)
         self.GSMNSIDE = config.getint('Input Data Settings','GSMNSIDE')
-        self.pointSourceCatalog = np.loadtxt(config.get('Input Data Settings','pointSourceCatalogFilename').replace('[MainDirectory]',self.mainDirectory))
-        self.pointSourceReferenceFreq = config.getfloat('Input Data Settings','pointSourceReferenceFreq')
-        self.pointSourceBeamWeightedFluxLimit = config.getfloat('Input Data Settings','pointSourceBeamWeightedFluxLimit')
-
+        
         #FACET SETTINGS
         self.facetRA = config.getfloat('Mapmaking Specifications','facetRA')
         self.facetRAinRad = self.facetRA * math.pi/180.0;
