@@ -10,8 +10,8 @@ import Geometry
 from GlobalSkyModel import GlobalSkyModel
 
 
-def VisibilitySimulator(s,PBs):
-    print "Now simulating visibilities..."
+def VisibilitySimulator(s,PBs,ps):
+    print "Now simulating visibilities (assuming XX beams only)..."
     coordsGSM = Geometry.Coordinates(s,True)
     visibilities = np.zeros([len(s.LSTs),len(s.baselines)],dtype=complex)
     
@@ -30,10 +30,14 @@ def VisibilitySimulator(s,PBs):
             for b in range(len(s.baselines)):
                 exponent = np.exp(-2j*np.pi*np.dot(rHatVectors,s.baselines[b]))
                 visibilities[t,b] += np.sum(GSM.hpMap * primaryBeam * exponent) * 4*np.pi / len(GSM.hpMap) / s.convertJyToKFactor
-                
-    if s.simulateVisibilitiesWithPointSources:
-        #Load PS catalog
-        print "this is not done"
-        
 
+    if s.simulateVisibilitiesWithPointSources:
+        for t in range(len(s.LSTs)):
+            psAlts, psAzs = Geometry.convertEquatorialToHorizontal(s,ps.RAs,ps.decs,s.LSTs[t])
+            rHatVectors = Geometry.convertAltAzToCartesian(psAlts,psAzs)
+            primaryBeam = hp.get_interp_val(PBs.beamSquared("X","x",s.pointings[t]), np.pi/2-psAlts, psAzs)
+            for b in range(len(s.baselines)):
+                exponent = np.exp(-2j*np.pi*np.dot(rHatVectors,s.baselines[b]))
+                visibilities[t,b] += np.sum(ps.scaledFluxes * primaryBeam * exponent) 
+				
     return visibilities

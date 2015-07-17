@@ -69,8 +69,9 @@ class Specifications:
         self.facetDec = config.getfloat('Mapmaking Specifications','facetDec')
         self.facetDecinRad = self.facetDec * math.pi/180.0;
         self.facetSize = config.getfloat('Mapmaking Specifications','facetSize')
-        self.MaximumAllowedAngleFromFacetCenterToZenith = config.getfloat('Mapmaking Specifications','MaximumAllowedAngleFromFacetCenterToZenith')
+        self.MaximumAllowedAngleFromFacetCenterToPointingCenter = config.getfloat('Mapmaking Specifications','MaximumAllowedAngleFromFacetCenterToPointingCenter')
         self.mapNSIDE = config.getint('Mapmaking Specifications', 'mapNSIDE')
+        self.PSFextensionBeyondFacetFactor = config.getfloat('Mapmaking Specifications', 'PSFextensionBeyondFacetFactor')    
         self.mapPixels = 12 * self.mapNSIDE**2
 
         #Other calculations based on inputs

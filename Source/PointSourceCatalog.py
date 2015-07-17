@@ -18,11 +18,11 @@ class PointSourceCatalog:
         primaryBeamWeights = hp.get_interp_val(PBs.beamSquared("X","x",s.pointings[middleLSTindex]), np.pi/2-psAlts, psAzs)
         beamWeightedFluxes = primaryBeamWeights * self.catalog[:,2] * (s.freq/s.pointSourceReferenceFreq)**(-self.catalog[:,3])
         self.catalog = self.catalog[beamWeightedFluxes > s.pointSourceBeamWeightedFluxLimit, :]
+        print str(len(self.catalog)) + " point sources identified for specific modeling."
         
         #Convert into a more useful format        
         self.RAs = self.catalog[:,0] * 2*np.pi/360
         self.decs = self.catalog[:,1] * 2*np.pi/360
         self.fluxes = self.catalog[:,2] 
         self.spectralIndices = self.catalog[:,3]    
-    
-        
+        self.scaledFluxes = self.fluxes * (s.freq / s.pointSourceReferenceFreq)**(-self.spectralIndices)

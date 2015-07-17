@@ -32,6 +32,9 @@ class Coordinates:
         self.pixelRAs = np.asarray([np.arctan2(rotatedVectors[n][1],rotatedVectors[n][0]) for n in range(self.mapPixels)])
         self.pixelRAs[self.pixelRAs < 0] = self.pixelRAs[self.pixelRAs < 0] + 2*np.pi
         self.galCoords = SkyCoord(frame="icrs", ra=self.pixelRAs*u.rad, dec=self.pixelDecs*u.rad).transform_to("galactic")
+        
+        self.mapIndices = hp.query_disc(self.NSIDE, hp.ang2vec(np.pi/2, 0), s.facetSize * 2*np.pi/360.0)
+        self.extendedIndices = hp.query_disc(self.NSIDE, hp.ang2vec(np.pi/2, 0), s.facetSize * 2*np.pi/360.0 * s.PSFextensionBeyondFacetFactor)
 
                         
 # Convert RAs and Decs in radians to altitudes and azimuths in radians, given an LST and array location in the specs object
@@ -55,7 +58,7 @@ def CutOutUnusedLSTs(s):
             angularDistanceFromFacetToPointing = hp.rotator.angdist([np.pi/2 - facetCenterAlt, facetCenterAz],[np.pi/2 - s.pointingCenters[s.pointings[t]][0], s.pointingCenters[s.pointings[t]][1]])
         else:
             angularDistanceFromFacetToPointing = np.min(np.array([hp.rotator.angdist([np.pi/2 - facetCenterAlt, facetCenterAz],[np.pi/2 - s.pointingCenters[s.pointings[t,ant]][0], s.pointingCenters[s.pointings[t,ant]][1]]) for ant in range(s.nAntennas)]))
-        if angularDistanceFromFacetToPointing > s.MaximumAllowedAngleFromFacetCenterToZenith*2.0*np.pi/360.0:
+        if angularDistanceFromFacetToPointing > s.MaximumAllowedAngleFromFacetCenterToPointingCenter*2.0*np.pi/360.0:
             s.useThisLST[t] = False
 
     s.LSTs = s.LSTs[s.useThisLST == True]
@@ -64,6 +67,6 @@ def CutOutUnusedLSTs(s):
         s.noisePerUniqueBaseline = s.noisePerUniqueBaseline[s.useThisLST == True]
     else:
         s.noisePerAntenna = s.noisePerAntenna[s.useThisLST == True]
-    print "Observations of " + str(int(np.sum(s.useThisLST))) + " LSTs are within " + str(s.MaximumAllowedAngleFromFacetCenterToZenith) + " degrees of the facet center."
+    print "Observations of " + str(int(np.sum(s.useThisLST))) + " LSTs are within " + str(s.MaximumAllowedAngleFromFacetCenterToPointingCenter) + " degrees of the facet center."
 
 

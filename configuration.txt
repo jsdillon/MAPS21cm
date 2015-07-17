@@ -66,11 +66,11 @@ facetRA: 50.6737
 #266.2417
 facetDec: -30.706267
 facetSize: 10.0
-MaximumAllowedAngleFromFacetCenterToZenith: 1.0
+MaximumAllowedAngleFromFacetCenterToPointingCenter: 2.0
 
 #MAP AND PSF SETTINGS
 mapNSIDE: 16
-
+PSFextensionBeyondFacetFactor = 2
 
 
 

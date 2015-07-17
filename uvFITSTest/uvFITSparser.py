@@ -45,7 +45,7 @@ print np.unique(np.asarray([Data[y][5] for y in range(len(Data))]))
 visibilities = np.asarray([Data[y][9] for y in range(len(Data))])
 
 visibilitiesForAnt258 = visibilities[np.asarray([Data[y][5] for y in range(len(Data))]) == 7197]
-baselineLength = 
+#baselineLength = 
 
 
 #print len(visibilitiesForAnt258[0][0][0][0][0][0])
