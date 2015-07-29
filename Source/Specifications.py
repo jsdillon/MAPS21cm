@@ -13,6 +13,7 @@ class Specifications:
     def __init__(self,directory,configFilename,freq):
         print "Now loading in specifications..."
         self.freq = freq
+        self.k = 2*np.pi * freq*1e6 / const.c
         config = ConfigParser.ConfigParser()
         self.mainDirectory = directory
         config.read(directory + configFilename)
@@ -42,8 +43,7 @@ class Specifications:
         self.beamNSIDE = config.getint('Array Settings','beamNSIDE')    
         
         #OBSERVATION SETTINGS
-        self.LSTs = np.loadtxt(config.get('Input Data Settings','LSTsFilename').replace('[MainDirectory]',self.mainDirectory))
-        self.useThisLST = np.ones(len(self.LSTs))
+        self.LSTsFilename = config.get('Input Data Settings','LSTsFilename').replace('[MainDirectory]',self.mainDirectory)
         self.pointings = np.loadtxt(config.get('Input Data Settings','PointingListFilename').replace('[MainDirectory]',self.mainDirectory)).astype(int)
         self.pointingCenters = pickle.load(open(config.get('Input Data Settings','PointingCenterDictionaryFilename').replace('[MainDirectory]',self.mainDirectory),'r'))
         if self.useOnlyUniqueBaselines:
@@ -72,6 +72,7 @@ class Specifications:
         self.MaximumAllowedAngleFromFacetCenterToPointingCenter = config.getfloat('Mapmaking Specifications','MaximumAllowedAngleFromFacetCenterToPointingCenter')
         self.mapNSIDE = config.getint('Mapmaking Specifications', 'mapNSIDE')
         self.PSFextensionBeyondFacetFactor = config.getfloat('Mapmaking Specifications', 'PSFextensionBeyondFacetFactor')    
+        self.integrationsPerSnapshot = config.getint('Mapmaking Specifications', 'integrationsPerSnapshot')    
         self.mapPixels = 12 * self.mapNSIDE**2
 
         #Other calculations based on inputs

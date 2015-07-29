@@ -18,25 +18,28 @@ freq = 150
 #Load in everything we need, figure out which LSTs to work with
 scriptDirectory = os.path.dirname(os.path.abspath(__file__))
 s = Specifications(scriptDirectory, "/configuration.txt",freq)
-Geometry.CutOutUnusedLSTs(s)
+times = Geometry.Times(s)
+times.CutOutUnusedLSTsAndGroupIntoSnapshots(s)
 coords = Geometry.Coordinates(s)
 PBs = PrimaryBeams(s)
-ps = PointSourceCatalog(s,PBs)
+ps = PointSourceCatalog(s,PBs,times)
+
 
 #Simulate or load visibilities
 if s.simulateVisibilitiesWithGSM or s.simulateVisibilitiesWithPointSources:
-    visibilities = VisibilitySimulator(s,PBs,ps)
+    visibilities = VisibilitySimulator(s,PBs,ps,times)
 else:
     print "Visibility loading functions are not done."    
     #visibilties = mmh.LoadVisibilities(s)
 visibilities *= s.convertJyToKFactor
 
+Geometry.rephaseVisibilityToSnapshotCenter(s,visibilities,times)
+
+
 
 
 #PSUEDO CODE:
-#-assign LSTs to snapshots
 #-Noise inverse variance weight
-#-rephase visibilities
 #-loop over snapshots:
 #    -calculate Ninv
 #    -Calculate Ninv*y
@@ -47,6 +50,7 @@ visibilities *= s.convertJyToKFactor
 #Save data products    
 
 
+# Packages needed: Mapmaking Matrices, 
 
 #plt.figure()
 #plt.plot(np.real(visibilities))

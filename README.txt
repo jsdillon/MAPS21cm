@@ -4,6 +4,7 @@ by Josh Dillon
 A work in progress.
 
 
+LSTs: Must be sequential and evenly spaced in time. If LSTs included spans the 24 hour to 0 hour gap, there's a risk of a few middle segments being deleted when grouping into snapshots
 
 Baselines:
 Baseline vectors are written in ASCII and expressed as (x,y,z) where +x is East, +y is North, and +z is Up

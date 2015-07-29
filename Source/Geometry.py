@@ -50,23 +50,65 @@ def convertAltAzToCartesian(alts, azs):
     """ Convert list of altitudes and azimuths to cartesian coordinates."""        
     return np.transpose(np.asarray([np.sin(azs)*np.cos(alts), np.cos(azs)*np.cos(alts), np.sin(alts)]))
 
-# Calculates which LSTs are close enough to the facet center to be used in making the map, eliminating the rest from loaded files 
-def CutOutUnusedLSTs(s):
-    for t in range(len(s.LSTs)):
-        facetCenterAlt, facetCenterAz = convertEquatorialToHorizontal(s, s.facetRAinRad, s.facetDecinRad, s.LSTs[t])        
-        if s.antennasHaveIdenticalBeams:
-            angularDistanceFromFacetToPointing = hp.rotator.angdist([np.pi/2 - facetCenterAlt, facetCenterAz],[np.pi/2 - s.pointingCenters[s.pointings[t]][0], s.pointingCenters[s.pointings[t]][1]])
+
+class Snapshot:
+    """ This class has information about a single snapshot. """
+    def __init__(self, times, LSTindices):
+        self.LSTindices = LSTindices
+        self.LSTs = times.LSTs[LSTindices]
+        self.centralLSTIndex = LSTindices[int(round(len(self.LSTindices)/2.0 - .5))]
+        self.centralLST = times.LSTs[self.centralLSTIndex]
+
+class Times:
+    """ This class contains information about the integration and snapshot LSTs. """
+    def __init__(self, s):   
+        self.LSTs = np.loadtxt(s.LSTsFilename)
+        self.integrationTime = np.median(self.LSTs[1:] - self.LSTs[0:len(self.LSTs)-1]) * 24 * 60
+        deltaTs = self.LSTs
+        self.useThisLST = np.ones(len(self.LSTs))
+        self.snapshots = [] 
+        
+    # Calculates which LSTs are close enough to the facet center to be used in making the map, eliminating the rest from loaded files 
+    def CutOutUnusedLSTsAndGroupIntoSnapshots(self, s):
+        for t in range(len(self.LSTs)):
+            facetCenterAlt, facetCenterAz = convertEquatorialToHorizontal(s, s.facetRAinRad, s.facetDecinRad, self.LSTs[t])        
+            if s.antennasHaveIdenticalBeams:
+                angularDistanceFromFacetToPointing = hp.rotator.angdist([np.pi/2 - facetCenterAlt, facetCenterAz],[np.pi/2 - s.pointingCenters[s.pointings[t]][0], s.pointingCenters[s.pointings[t]][1]])
+            else:
+                angularDistanceFromFacetToPointing = np.min(np.array([hp.rotator.angdist([np.pi/2 - facetCenterAlt, facetCenterAz],[np.pi/2 - s.pointingCenters[s.pointings[t,ant]][0], s.pointingCenters[s.pointings[t,ant]][1]]) for ant in range(s.nAntennas)]))
+            if angularDistanceFromFacetToPointing > s.MaximumAllowedAngleFromFacetCenterToPointingCenter*2.0*np.pi/360.0:
+                self.useThisLST[t] = False
+    
+        #Groups LST indices into snapshots, assuming that all LSTs are evenly spaced in time
+        LSTindicesToUse = np.nonzero(self.useThisLST)[0]
+        closeEnoughLSTs = len(LSTindicesToUse)
+        consecutiveSegments =  np.split(LSTindicesToUse, np.where(np.diff(LSTindicesToUse) != 1)[0]+1)
+        LSTindicesToUse = np.asarray([segment[0:np.floor(len(segment)/s.integrationsPerSnapshot)*s.integrationsPerSnapshot] for segment in consecutiveSegments]).flatten()  
+        
+        #Delete unnecessary data
+        self.useThisLST = np.zeros(len(self.LSTs))
+        self.useThisLST[LSTindicesToUse] = True
+        self.LSTs = self.LSTs[self.useThisLST == True]
+        s.pointings = s.pointings[self.useThisLST == True]
+        if s.useOnlyUniqueBaselines:
+            s.noisePerUniqueBaseline = s.noisePerUniqueBaseline[self.useThisLST == True]
         else:
-            angularDistanceFromFacetToPointing = np.min(np.array([hp.rotator.angdist([np.pi/2 - facetCenterAlt, facetCenterAz],[np.pi/2 - s.pointingCenters[s.pointings[t,ant]][0], s.pointingCenters[s.pointings[t,ant]][1]]) for ant in range(s.nAntennas)]))
-        if angularDistanceFromFacetToPointing > s.MaximumAllowedAngleFromFacetCenterToPointingCenter*2.0*np.pi/360.0:
-            s.useThisLST[t] = False
-
-    s.LSTs = s.LSTs[s.useThisLST == True]
-    s.pointings = s.pointings[s.useThisLST == True]
-    if s.useOnlyUniqueBaselines:
-        s.noisePerUniqueBaseline = s.noisePerUniqueBaseline[s.useThisLST == True]
-    else:
-        s.noisePerAntenna = s.noisePerAntenna[s.useThisLST == True]
-    print "Observations of " + str(int(np.sum(s.useThisLST))) + " LSTs are within " + str(s.MaximumAllowedAngleFromFacetCenterToPointingCenter) + " degrees of the facet center."
-
+            s.noisePerAntenna = s.noisePerAntenna[self.useThisLST == True]
+            
+        #Make snapshots
+        LSTindicesGrouped = np.reshape(np.arange(len(self.LSTs)),(len(LSTindicesToUse)/s.integrationsPerSnapshot, s.integrationsPerSnapshot))
+        self.snapshots = [Snapshot(self, LSTgroup) for LSTgroup in LSTindicesGrouped]        
+        print "Observations of " + str(closeEnoughLSTs) + " LSTs are within " + str(s.MaximumAllowedAngleFromFacetCenterToPointingCenter) + " degrees of the facet center."
+        print "They are broken up into " + str(len(self.snapshots)) + " snapshots of exactly " + str(s.integrationsPerSnapshot * self.integrationTime) + " seconds.\n" + str(closeEnoughLSTs - len(self.LSTs)) + " integration(s) were discarded in snapshotting."
+    
+def rephaseVisibilityToSnapshotCenter(s,visibilities,times):
+    """This function steps through the snapshots and rephases all the visibilities to the facet center of central LST of the snapshot."""
+    for snapshot in times.snapshots:
+        centralLSTAlt, centralLSTaz = convertEquatorialToHorizontal(s,s.facetRAinRad,s.facetDecinRad,snapshot.centralLST)
+        centralSnapshotFacetCenterVector = convertAltAzToCartesian(centralLSTAlt, centralLSTaz)        
+        for t in range(len(snapshot.LSTs)):
+            thisLSTAlt, thisLSTaz = convertEquatorialToHorizontal(s,s.facetRAinRad,s.facetDecinRad,snapshot.LSTs[t])
+            deltaTheta = centralSnapshotFacetCenterVector - convertAltAzToCartesian(thisLSTAlt, thisLSTaz)
+            rephaseFactors = np.exp(-s.k * s.baselines.dot(deltaTheta))
+            visibilities[snapshot.LSTindices[t],:] = visibilities[snapshot.LSTindices[t],:] * rephaseFactors
 
