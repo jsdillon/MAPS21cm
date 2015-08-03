@@ -9,6 +9,7 @@ from Source.PrimaryBeams import PrimaryBeams
 from Source.VisibilitySimulator import VisibilitySimulator
 from Source import Geometry
 from Source.PointSourceCatalog import PointSourceCatalog
+from Source import MatricesForMapmaking as MapMats
 import scipy.constants as const
 plt.close("all")
 
@@ -33,15 +34,37 @@ else:
     #visibilties = mmh.LoadVisibilities(s)
 visibilities *= s.convertJyToKFactor
 
-Geometry.rephaseVisibilityToSnapshotCenter(s,visibilities,times)
+Geometry.rephaseVisibilitiesToSnapshotCenter(s,visibilities,times)
+MapMats.inverseCovarianceWeightVisibilities(s,visibilities)
 
+for snapshot in times.snapshots:    
+    NinvTimesy = MapMats.calculateNinvTimesy(visibilities, snapshot)
+    Ninv = MapMats.calculateNInv(s,snapshot)
+    
+}    
+    
+#	Healpix_Map<double> coaddedMap = emptyHealpixMap();
+#	vector< vector<double> > PSF(nPixels, vector<double>(nPixelsExtended,0.0));
+#	vector< vector<double> > pointSourcePSF(nPixels, vector<double>(nPointSources,0.0));
+#	for (int n = 0; n < nSnapshots; n++){
+#		cout << " " << floor(100.0 * n / nSnapshots) << "% done. \r" << std::flush;
+#		int snapshotCentralLSTindex = snapshotLSTindices[n][int(round(snapshotLSTindices[n].size()/2.0-.5))];
+#		vector<complex> NinvTimesy = calculateNinvTimesy(allVisibilities, snapshotLSTindices[n]);
+#		vector<double> Ninv = calculateNinv(noiseVarianceOnEachVisibiltiy, snapshotLSTindices[n]);
+#		vector< vector<complex> > KAtranspose = calculateKAtranspose(LSTs[snapshotCentralLSTindex], extendedPixelEquaPointings, baselines, discretizedPrimaryBeam);
+#		addSnapshotMap(coaddedMap, NinvTimesy, KAtranspose, mapOfIndicesInExtendedIndexVector, healpixIndices);
+#		addSnapshotPSF(PSF, KAtranspose, Ninv, mapOfIndicesInExtendedIndexVector);
+#		if (alsoComputePointSourcePSF){
+#			vector< vector<complex> > pointSourceAmatrix = calcualtePointSourceAmatrix(LSTs[snapshotCentralLSTindex], baselines, discretizedPrimaryBeam, allPointSources);
+#			addSnapshotPointSourcePSF(pointSourcePSF, KAtranspose, Ninv, pointSourceAmatrix, mapOfIndicesInExtendedIndexVector);
+#		}
+#	}
 
 
 
 #PSUEDO CODE:
-#-Noise inverse variance weight
 #-loop over snapshots:
-#    -calculate Ninv
+#    -calculate Ninv DONE
 #    -Calculate Ninv*y
 #    -Calculate KAtranspose
 #    -add snapshot map

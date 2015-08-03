@@ -26,6 +26,7 @@ class Specifications:
             self.baselineRedundancies = np.loadtxt(config.get('Array Settings','baselineRedundancyFile').replace('[MainDirectory]',self.mainDirectory))
         else:
             self.baselines = np.loadtxt(config.get('Array Settings','allBaselinesListFile').replace('[MainDirectory]',self.mainDirectory))
+            self.allBaselinePairs = np.loadtxt(config.get('Array Settings','allBaselinePairsListFile').replace('[MainDirectory]',self.mainDirectory))
             self.baselineRedundancies = np.ones(self.baselines.shape[0]) #since no baselines are redundant
         self.arrayLat = config.getfloat('Array Settings','arrayLat')
         self.arrayLatInRad = self.arrayLat * math.pi/180.0;

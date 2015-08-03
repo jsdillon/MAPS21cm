@@ -101,7 +101,7 @@ class Times:
         print "Observations of " + str(closeEnoughLSTs) + " LSTs are within " + str(s.MaximumAllowedAngleFromFacetCenterToPointingCenter) + " degrees of the facet center."
         print "They are broken up into " + str(len(self.snapshots)) + " snapshots of exactly " + str(s.integrationsPerSnapshot * self.integrationTime) + " seconds.\n" + str(closeEnoughLSTs - len(self.LSTs)) + " integration(s) were discarded in snapshotting."
     
-def rephaseVisibilityToSnapshotCenter(s,visibilities,times):
+def rephaseVisibilitiesToSnapshotCenter(s,visibilities,times):
     """This function steps through the snapshots and rephases all the visibilities to the facet center of central LST of the snapshot."""
     for snapshot in times.snapshots:
         centralLSTAlt, centralLSTaz = convertEquatorialToHorizontal(s,s.facetRAinRad,s.facetDecinRad,snapshot.centralLST)
