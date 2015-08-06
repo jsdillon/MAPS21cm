@@ -17,8 +17,8 @@ class PointSourceCatalog:
             middleLSTindex = int(math.floor(len(times.LSTs)/2.0))
             psAlts, psAzs = Geometry.convertEquatorialToHorizontal(s, self.catalog[:,0] * 2*np.pi/360, self.catalog[:,1] * 2*np.pi/360, times.LSTs[middleLSTindex])
             primaryBeamWeights = hp.get_interp_val(PBs.beamSquared("X","x",s.pointings[middleLSTindex]), np.pi/2-psAlts, psAzs)
-            beamWeightedFluxes = primaryBeamWeights * self.catalog[:,2] * (s.freq/s.pointSourceReferenceFreq)**(-self.catalog[:,3])
-            self.catalog = self.catalog[beamWeightedFluxes > s.pointSourceBeamWeightedFluxLimit, :]
+            beamWeightedFluxesAtReferenceFreq = primaryBeamWeights * self.catalog[:,2]
+            self.catalog = self.catalog[beamWeightedFluxesAtReferenceFreq > s.pointSourceBeamWeightedFluxLimitAtReferenceFreq, :]
             print str(len(self.catalog)) + " point sources identified for specific modeling."
             
             #Convert into a more useful format        

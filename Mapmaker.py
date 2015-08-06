@@ -14,7 +14,7 @@ import scipy.constants as const
 plt.close("all")
 
 freq = 150
-#TODO: the frequency should be passed as a command line parameter
+#TODO: the frequency should be passed as a command line parameters
 
 #Load in everything we need, figure out which LSTs to work with
 scriptDirectory = os.path.dirname(os.path.abspath(__file__))
@@ -52,23 +52,12 @@ for snapshot in times.snapshots:
         pointSourceAmatrix = MapMats.calculatePSAmatrix(s,snapshot,ps,PBs)
         pointSourcePSF += 2 * np.real(np.dot(KAtranspose[coords.mapIndexLocationsInExtendedIndexList,:], np.dot(np.diag(Ninv), pointSourceAmatrix)))
         
-#Renormalize maps and PSFs
+#Renormalize maps and PSFs and save results
 Dmatrix = np.diag(np.diag(PSF[:,coords.mapIndexLocationsInExtendedIndexList])**(-1))
 PSF = np.dot(Dmatrix,PSF)
 coaddedMap = np.dot(Dmatrix,coaddedMap)
 pointSourcePSF = np.dot(Dmatrix,pointSourcePSF)
 mapNoiseCovariance = np.dot(PSF[:,coords.mapIndexLocationsInExtendedIndexList],np.transpose(Dmatrix))
- 
-    
 
-
-
-
-#PSUEDO CODE:
-#Save data products    
-
-
-
-plt.show()    
-
+MapMats.saveAllResults(s,coords,times,ps,Dmatrix,PSF,coaddedMap,pointSourcePSF,mapNoiseCovariance)
     

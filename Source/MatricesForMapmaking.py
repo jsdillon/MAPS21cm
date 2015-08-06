@@ -5,6 +5,8 @@ import numpy as np
 import healpy as hp
 import math
 import Geometry
+import cPickle as pickle
+import os
 
 def inverseCovarianceWeightVisibilities(s,visibilities):
     """This function weights the visibilities (which have not been combined into snapshots yet) by the inverse of the noise variance."""
@@ -44,3 +46,18 @@ def calculatePSAmatrix(s,snapshot,ps,PBs):
     realSpaceDiagonalPart = hp.get_interp_val(PBs.beamSquared("X","x",s.pointings[snapshot.centralLSTIndex]), np.pi/2-psAlts, psAzs)
     pointSourceAmatrix = np.dot(np.exp(-1j * s.k * s.baselines.dot(np.transpose(psCartVecs))), np.diag(realSpaceDiagonalPart))
     return pointSourceAmatrix
+    
+def saveAllResults(s,coords,times,ps,Dmatrix,PSF,coaddedMap,pointSourcePSF,mapNoiseCovariance):
+    """This function saves all the input classes, vectors, and matrices to s.resultsFolder."""
+    os.system("rm -rf " + s.resultsFolder)
+    os.system("mkdir " + s.resultsFolder)
+    pickle.dump(s, open(s.resultsFolder + "specifications.p","wb"))
+    pickle.dump(coords, open(s.resultsFolder + "coordinates.p","wb"))
+    pickle.dump(times, open(s.resultsFolder + "times.p","wb"))
+    pickle.dump(ps, open(s.resultsFolder + "pointSourceCatalog.p","wb"))
+    np.save(s.resultsFolder + "Dmatrix",Dmatrix)
+    np.save(s.resultsFolder + "PSF",PSF)
+    np.save(s.resultsFolder + "coaddedMap",coaddedMap)
+    np.save(s.resultsFolder + "pointSourcePSF",pointSourcePSF)
+    np.save(s.resultsFolder + "mapNoiseCovariance",mapNoiseCovariance)
+

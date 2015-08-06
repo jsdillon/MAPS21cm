@@ -44,7 +44,7 @@ noisePerAntennaFilename: [MainDirectory]/ObservationData/noisePerUniqueBaseline.
 #POINT SOURCE CATALOG SETTINGS
 pointSourceCatalogFilename: [MainDirectory]/ObservationData/mwacs_all_b3_140206.dat
 pointSourceReferenceFreq = 180
-pointSourceBeamWeightedFluxLimit: 1
+pointSourceBeamWeightedFluxLimitAtReferenceFreq: 1
 #   in Jy
 
 #VISIBILITY SIMULATION SETTINGS
@@ -79,8 +79,10 @@ PSFforPointSources = true
 #POLARIZATION SETTINGS
 makeMapOfStokesIOnly: true
 
-
 #OUTPUT SETTINGS
+resultsFolder = [MainDirectory]/Results_HERA19/
+
+
 
 #########################################################################################################
 [Power Spectrum Estimation Settings]

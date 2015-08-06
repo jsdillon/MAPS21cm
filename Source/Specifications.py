@@ -55,7 +55,7 @@ class Specifications:
         #POINT SOURCE CATALOG SETTINGS
         self.pointSourceCatalogFilename = config.get('Input Data Settings','pointSourceCatalogFilename').replace('[MainDirectory]',self.mainDirectory)
         self.pointSourceReferenceFreq = config.getfloat('Input Data Settings','pointSourceReferenceFreq')
-        self.pointSourceBeamWeightedFluxLimit = config.getfloat('Input Data Settings','pointSourceBeamWeightedFluxLimit')
+        self.pointSourceBeamWeightedFluxLimitAtReferenceFreq = config.getfloat('Input Data Settings','pointSourceBeamWeightedFluxLimitAtReferenceFreq')
         
         
         #VISIBILITY SIMULATION SETTINGS
@@ -71,11 +71,16 @@ class Specifications:
         self.facetDecinRad = self.facetDec * math.pi/180.0;
         self.facetSize = config.getfloat('Mapmaking Specifications','facetSize')
         self.MaximumAllowedAngleFromFacetCenterToPointingCenter = config.getfloat('Mapmaking Specifications','MaximumAllowedAngleFromFacetCenterToPointingCenter')
+        
+        #MAPMAKING AND PSF SETTINGS        
         self.mapNSIDE = config.getint('Mapmaking Specifications', 'mapNSIDE')
         self.PSFextensionBeyondFacetFactor = config.getfloat('Mapmaking Specifications', 'PSFextensionBeyondFacetFactor')    
         self.integrationsPerSnapshot = config.getint('Mapmaking Specifications', 'integrationsPerSnapshot')
         self.PSFforPointSources = config.getboolean('Mapmaking Specifications','PSFforPointSources')
         self.mapPixels = 12 * self.mapNSIDE**2
+        
+        #OUTPUT SETTINGS
+        self.resultsFolder = config.get('Mapmaking Specifications','resultsFolder').replace('[MainDirectory]',self.mainDirectory) + "{:.3f}".format(self.freq) + "/"        
 
         #Other calculations based on inputs
         self.nAntennas = len(self.antennaPositions)
