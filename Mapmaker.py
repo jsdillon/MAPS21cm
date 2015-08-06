@@ -31,57 +31,43 @@ if s.simulateVisibilitiesWithGSM or s.simulateVisibilitiesWithPointSources:
     visibilities = VisibilitySimulator(s,PBs,ps,times)
 else:
     print "Visibility loading functions are not done."    
-    #visibilties = mmh.LoadVisibilities(s)
+    #visibilties = LoadVisibilities(s)
 visibilities *= s.convertJyToKFactor
 
+#Prepare visibilities
 Geometry.rephaseVisibilitiesToSnapshotCenter(s,visibilities,times)
 MapMats.inverseCovarianceWeightVisibilities(s,visibilities)
 
+#Perform mapmaking and calculate PSFs
+coaddedMap = np.zeros(coords.nFacetPixels)
+PSF = np.zeros((coords.nFacetPixels,coords.nExtendedPixels))
+pointSourcePSF = np.zeros((coords.nFacetPixels, ps.nSources))
 for snapshot in times.snapshots:    
     NinvTimesy = MapMats.calculateNinvTimesy(visibilities, snapshot)
     Ninv = MapMats.calculateNInv(s,snapshot)
+    KAtranspose = MapMats.calculateKAtranspose(s,snapshot,coords,PBs)    
+    coaddedMap += 2 * np.real(np.dot(KAtranspose[coords.mapIndexLocationsInExtendedIndexList,:], NinvTimesy))
+    PSF += 2 * np.real(np.dot(KAtranspose[coords.mapIndexLocationsInExtendedIndexList,:], np.dot(np.diag(Ninv), KAtranspose.conj().transpose())))    
+    if s.PSFforPointSources and ps.nSources > 0:
+        pointSourceAmatrix = MapMats.calculatePSAmatrix(s,snapshot,ps,PBs)
+        pointSourcePSF += 2 * np.real(np.dot(KAtranspose[coords.mapIndexLocationsInExtendedIndexList,:], np.dot(np.diag(Ninv), pointSourceAmatrix)))
+        
+#Renormalize maps and PSFs
+Dmatrix = np.diag(np.diag(PSF[:,coords.mapIndexLocationsInExtendedIndexList])**(-1))
+PSF = np.dot(Dmatrix,PSF)
+coaddedMap = np.dot(Dmatrix,coaddedMap)
+pointSourcePSF = np.dot(Dmatrix,pointSourcePSF)
+mapNoiseCovariance = np.dot(PSF[:,coords.mapIndexLocationsInExtendedIndexList],np.transpose(Dmatrix))
+ 
     
-}    
-    
-#	Healpix_Map<double> coaddedMap = emptyHealpixMap();
-#	vector< vector<double> > PSF(nPixels, vector<double>(nPixelsExtended,0.0));
-#	vector< vector<double> > pointSourcePSF(nPixels, vector<double>(nPointSources,0.0));
-#	for (int n = 0; n < nSnapshots; n++){
-#		cout << " " << floor(100.0 * n / nSnapshots) << "% done. \r" << std::flush;
-#		int snapshotCentralLSTindex = snapshotLSTindices[n][int(round(snapshotLSTindices[n].size()/2.0-.5))];
-#		vector<complex> NinvTimesy = calculateNinvTimesy(allVisibilities, snapshotLSTindices[n]);
-#		vector<double> Ninv = calculateNinv(noiseVarianceOnEachVisibiltiy, snapshotLSTindices[n]);
-#		vector< vector<complex> > KAtranspose = calculateKAtranspose(LSTs[snapshotCentralLSTindex], extendedPixelEquaPointings, baselines, discretizedPrimaryBeam);
-#		addSnapshotMap(coaddedMap, NinvTimesy, KAtranspose, mapOfIndicesInExtendedIndexVector, healpixIndices);
-#		addSnapshotPSF(PSF, KAtranspose, Ninv, mapOfIndicesInExtendedIndexVector);
-#		if (alsoComputePointSourcePSF){
-#			vector< vector<complex> > pointSourceAmatrix = calcualtePointSourceAmatrix(LSTs[snapshotCentralLSTindex], baselines, discretizedPrimaryBeam, allPointSources);
-#			addSnapshotPointSourcePSF(pointSourcePSF, KAtranspose, Ninv, pointSourceAmatrix, mapOfIndicesInExtendedIndexVector);
-#		}
-#	}
+
 
 
 
 #PSUEDO CODE:
-#-loop over snapshots:
-#    -calculate Ninv DONE
-#    -Calculate Ninv*y
-#    -Calculate KAtranspose
-#    -add snapshot map
-#    -add snapshot PSF
-#Normalize the final output
 #Save data products    
 
 
-# Packages needed: Mapmaking Matrices, 
-
-#plt.figure()
-#plt.plot(np.real(visibilities))
-
-
-
-#hp.mollview(pixelAzs, title="Pixel Azimuths at LST=0")
-#hp.mollview(PBs.beamSquared("X","x",s.pointings[0]), title="PrimaryBeam")
 
 plt.show()    
 

@@ -31,7 +31,7 @@ def VisibilitySimulator(s,PBs,ps,times):
                 exponent = np.exp(-2j*np.pi*np.dot(rHatVectors,s.baselines[b]))
                 visibilities[t,b] += np.sum(GSM.hpMap * primaryBeam * exponent) * 4*np.pi / len(GSM.hpMap) / s.convertJyToKFactor
 
-    if s.simulateVisibilitiesWithPointSources:
+    if s.simulateVisibilitiesWithPointSources and ps.nSources > 0:
         for t in range(len(times.LSTs)):
             psAlts, psAzs = Geometry.convertEquatorialToHorizontal(s,ps.RAs,ps.decs,times.LSTs[t])
             rHatVectors = Geometry.convertAltAzToCartesian(psAlts,psAzs)

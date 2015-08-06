@@ -74,7 +74,7 @@ mapNSIDE: 16
 PSFextensionBeyondFacetFactor = 2
 integrationsPerSnapshot = 5
 # in seconds
-
+PSFforPointSources = true
 
 #POLARIZATION SETTINGS
 makeMapOfStokesIOnly: true

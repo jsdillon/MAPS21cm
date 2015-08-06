@@ -34,8 +34,14 @@ class Coordinates:
         self.galCoords = SkyCoord(frame="icrs", ra=self.pixelRAs*u.rad, dec=self.pixelDecs*u.rad).transform_to("galactic")
         
         self.mapIndices = hp.query_disc(self.NSIDE, hp.ang2vec(np.pi/2, 0), s.facetSize * 2*np.pi/360.0)
-        self.extendedIndices = hp.query_disc(self.NSIDE, hp.ang2vec(np.pi/2, 0), s.facetSize * 2*np.pi/360.0 * s.PSFextensionBeyondFacetFactor)
-
+        self.extendedIndices = hp.query_disc(self.NSIDE, hp.ang2vec(np.pi/2, 0), s.facetSize * 2*np.pi/360.0 * s.PSFextensionBeyondFacetFactor)        
+        self.nFacetPixels = len(self.mapIndices)
+        self.nExtendedPixels = len(self.extendedIndices)
+        
+        extendedIndexDict = dict([ (self.extendedIndices[i], i) for i in range(self.nExtendedPixels) ])
+        self.mapIndexLocationsInExtendedIndexList = np.asarray([extendedIndexDict[mapIndex] for mapIndex in self.mapIndices])
+        
+        
                         
 # Convert RAs and Decs in radians to altitudes and azimuths in radians, given an LST and array location in the specs object
 def convertEquatorialToHorizontal(s,RAs,decs,LST):

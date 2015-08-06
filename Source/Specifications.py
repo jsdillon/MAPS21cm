@@ -73,7 +73,8 @@ class Specifications:
         self.MaximumAllowedAngleFromFacetCenterToPointingCenter = config.getfloat('Mapmaking Specifications','MaximumAllowedAngleFromFacetCenterToPointingCenter')
         self.mapNSIDE = config.getint('Mapmaking Specifications', 'mapNSIDE')
         self.PSFextensionBeyondFacetFactor = config.getfloat('Mapmaking Specifications', 'PSFextensionBeyondFacetFactor')    
-        self.integrationsPerSnapshot = config.getint('Mapmaking Specifications', 'integrationsPerSnapshot')    
+        self.integrationsPerSnapshot = config.getint('Mapmaking Specifications', 'integrationsPerSnapshot')
+        self.PSFforPointSources = config.getboolean('Mapmaking Specifications','PSFforPointSources')
         self.mapPixels = 12 * self.mapNSIDE**2
 
         #Other calculations based on inputs
