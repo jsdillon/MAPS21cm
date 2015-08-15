@@ -10,7 +10,7 @@ import Geometry
 from GlobalSkyModel import GlobalSkyModel
 
 
-def VisibilitySimulator(s,PBs,ps,times):
+def VisibilitySimulator(s,PBs,ps,times,coords):
     print "Now simulating visibilities (assuming XX beams only)..."
     coordsGSM = Geometry.Coordinates(s,True)
     visibilities = np.zeros([len(times.LSTs),len(s.baselines)],dtype=complex)
@@ -18,9 +18,18 @@ def VisibilitySimulator(s,PBs,ps,times):
     #TODO: this ignores polarization and differing primary beams
     if s.simulateVisibilitiesWithGSM:
         GSM = GlobalSkyModel(s.freq, s.GSMlocation, s.GSMNSIDE)
-        #interpolate onto rotated equatorial coordinates
-        interpoltedGSMRotated = hp.get_interp_val(GSM.hpMap,-coordsGSM.galCoords.b.radian+np.pi/2, np.asarray(coordsGSM.galCoords.l.radian))
-        hp.mollview(np.log10(interpoltedGSMRotated), title="GSM in Rotated Equatorial Coordinates")
+        interpoltedGSMRotated = hp.get_interp_val(GSM.hpMap,-coordsGSM.galCoords.b.radian+np.pi/2, np.asarray(coordsGSM.galCoords.l.radian))        
+        
+        
+        interpoltedGSMRotated = np.zeros(len(interpoltedGSMRotated))
+        testSourceIndex = hp.query_disc(coords.NSIDE, hp.ang2vec(np.pi/2, 0), s.facetSize/10 * 2*np.pi/360.0)[0]
+        facetTest = np.zeros(len(interpoltedGSMRotated))
+        facetTest[coords.mapIndices] = 1
+        facetTest[testSourceIndex] = 2
+        hp.mollview(facetTest, title="facetTest")
+        interpoltedGSMRotated[testSourceIndex] = 1
+        #hp.mollview(np.log10(interpoltedGSMRotated), title="GSM in Rotated Equatorial Coordinates")
+        
         
         #loop over times and baselines to calculate visibilities
         for t in range(len(times.LSTs)):
@@ -28,8 +37,8 @@ def VisibilitySimulator(s,PBs,ps,times):
             rHatVectors = Geometry.convertAltAzToCartesian(pixelAlts,pixelAzs)
             primaryBeam = hp.get_interp_val(PBs.beamSquared("X","x",s.pointings[t]), np.pi/2-pixelAlts, pixelAzs)
             for b in range(len(s.baselines)):
-                exponent = np.exp(-2j*np.pi*np.dot(rHatVectors,s.baselines[b]))
-                visibilities[t,b] += np.sum(GSM.hpMap * primaryBeam * exponent) * 4*np.pi / len(GSM.hpMap) / s.convertJyToKFactor
+                exponent = np.exp(-1j*s.k*np.dot(rHatVectors,s.baselines[b]))
+                visibilities[t,b] += np.sum(interpoltedGSMRotated * primaryBeam * exponent) * 4*np.pi / len(GSM.hpMap) / s.convertJyToKFactor
 
     if s.simulateVisibilitiesWithPointSources and ps.nSources > 0:
         for t in range(len(times.LSTs)):
@@ -37,7 +46,7 @@ def VisibilitySimulator(s,PBs,ps,times):
             rHatVectors = Geometry.convertAltAzToCartesian(psAlts,psAzs)
             primaryBeam = hp.get_interp_val(PBs.beamSquared("X","x",s.pointings[t]), np.pi/2-psAlts, psAzs)
             for b in range(len(s.baselines)):
-                exponent = np.exp(-2j*np.pi*np.dot(rHatVectors,s.baselines[b]))
+                exponent = np.exp(-1j*s.k*np.dot(rHatVectors,s.baselines[b]))
                 visibilities[t,b] += np.sum(ps.scaledFluxes * primaryBeam * exponent) 
 				
     return visibilities

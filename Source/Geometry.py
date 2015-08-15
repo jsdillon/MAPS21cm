@@ -89,7 +89,7 @@ class Times:
         LSTindicesToUse = np.nonzero(self.useThisLST)[0]
         closeEnoughLSTs = len(LSTindicesToUse)
         consecutiveSegments =  np.split(LSTindicesToUse, np.where(np.diff(LSTindicesToUse) != 1)[0]+1)
-        LSTindicesToUse = np.asarray([segment[0:np.floor(len(segment)/s.integrationsPerSnapshot)*s.integrationsPerSnapshot] for segment in consecutiveSegments]).flatten()  
+        LSTindicesToUse = np.asarray([segment[index] for segment in consecutiveSegments for index in range(int(np.floor(len(segment)/s.integrationsPerSnapshot)*s.integrationsPerSnapshot))])
         
         #Delete unnecessary data
         self.useThisLST = np.zeros(len(self.LSTs))

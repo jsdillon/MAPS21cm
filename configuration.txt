@@ -44,14 +44,14 @@ noisePerAntennaFilename: [MainDirectory]/ObservationData/noisePerUniqueBaseline.
 #POINT SOURCE CATALOG SETTINGS
 pointSourceCatalogFilename: [MainDirectory]/ObservationData/mwacs_all_b3_140206.dat
 pointSourceReferenceFreq = 180
-pointSourceBeamWeightedFluxLimitAtReferenceFreq: 1
+pointSourceBeamWeightedFluxLimitAtReferenceFreq: 5
 #   in Jy
 
 #VISIBILITY SIMULATION SETTINGS
 simulateVisibilitiesWithGSM: true
-simulateVisibilitiesWithPointSources: true
+simulateVisibilitiesWithPointSources: false
 GSMlocation: [MainDirectory]/ObservationData/GSM/
-GSMNSIDE: 32
+GSMNSIDE: 64
 
 
 
@@ -66,13 +66,13 @@ facetRA: 0
 #50.6737
 #266.2417
 facetDec: -30.706267
-facetSize: 10.0
-MaximumAllowedAngleFromFacetCenterToPointingCenter: 2.0
+facetSize: 15
+MaximumAllowedAngleFromFacetCenterToPointingCenter: 5
 
 #MAPMAKING AND PSF SETTINGS
-mapNSIDE: 16
-PSFextensionBeyondFacetFactor = 2
-integrationsPerSnapshot = 5
+mapNSIDE: 64
+PSFextensionBeyondFacetFactor = 3
+integrationsPerSnapshot = 1
 # in seconds
 PSFforPointSources = true
 
