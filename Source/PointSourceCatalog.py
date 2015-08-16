@@ -5,6 +5,7 @@ import numpy as np
 import healpy as hp
 import math
 import Geometry
+import time
 
 class PointSourceCatalog:
     def __init__(self,s,PBs,times):
@@ -12,6 +13,8 @@ class PointSourceCatalog:
         try: 
             self.freq = s.freq
             self.catalog = np.loadtxt(s.pointSourceCatalogFilename)
+            self.catalog = self.catalog[self.catalog[:,2] < 2*s.pointSourceBeamWeightedFluxLimitAtReferenceFreq, :] #assumes that the beam has a max value of 1, with an extra factor of 2 buffer
+    
             
             # Determines if the beam-weighted flux of each point source is above the limit and deletes it from the catalog if it isn't
             middleLSTindex = int(math.floor(len(times.LSTs)/2.0))

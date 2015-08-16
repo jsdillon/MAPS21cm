@@ -67,7 +67,7 @@ facetRA: 0
 #266.2417
 facetDec: -30.706267
 facetSize: 15
-MaximumAllowedAngleFromFacetCenterToPointingCenter: 5
+MaximumAllowedAngleFromFacetCenterToPointingCenter: 1
 
 #MAPMAKING AND PSF SETTINGS
 mapNSIDE: 64

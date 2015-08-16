@@ -32,7 +32,7 @@ def calculateNInv(s, snapshot):
 def calculateKAtranspose(s,snapshot,coords,PBs):
     """This function computes K_PSF * A^t, which maps baselines at the given snapshot central index to the extended facet.
     It is worth nothing that the Fourier convention is based on A having e^ib.k, so A^t has e^-ib.k = e^i|k|b.theta_hat, as we see here."""
-    realSpaceDiagonalPart = np.ones(coords.nExtendedPixels) * 4*np.pi / 12.0 / coords.NSIDE**2 * s.convertJyToKFactor
+    realSpaceDiagonalPart = np.ones(coords.nExtendedPixels) * 4*np.pi / 12.0 / coords.NSIDE**2 / s.convertJyToKFactor
     extendedAlts, extendedAzs = Geometry.convertEquatorialToHorizontal(s, coords.pixelRAs[coords.extendedIndices], coords.pixelDecs[coords.extendedIndices],snapshot.centralLST)
     extendedCartVecs = Geometry.convertAltAzToCartesian(extendedAlts, extendedAzs)
     realSpaceDiagonalPart *= hp.get_interp_val(PBs.beamSquared("X","x",s.pointings[snapshot.centralLSTIndex]), np.pi/2-extendedAlts, extendedAzs)    

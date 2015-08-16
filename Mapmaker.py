@@ -32,7 +32,7 @@ def Mapmaker(freq = 150, configFile = "configuration.txt", overridePSFExtension 
     coords = Geometry.Coordinates(s)
     PBs = PrimaryBeams(s)
     ps = PointSourceCatalog(s,PBs,times)
-    
+    print s.convertJyToKFactor
     
     #Simulate or load visibilities
     if s.simulateVisibilitiesWithGSM or s.simulateVisibilitiesWithPointSources:
@@ -43,6 +43,7 @@ def Mapmaker(freq = 150, configFile = "configuration.txt", overridePSFExtension 
     visibilities *= s.convertJyToKFactor
     
     #Prepare visibilities
+    visibilities /= s.convertJyToKFactor #converts to temperature units
     Geometry.rephaseVisibilitiesToSnapshotCenter(s,visibilities,times)
     MapMats.inverseCovarianceWeightVisibilities(s,visibilities)
 
@@ -63,8 +64,9 @@ def Mapmaker(freq = 150, configFile = "configuration.txt", overridePSFExtension 
             
     #Renormalize maps and PSFs and save results
     Dmatrix = np.diag(np.diag(PSF[:,coords.mapIndexLocationsInExtendedIndexList])**(-1))
-    #Dmatrix = np.diag(np.ones(len(coords.mapIndices)))
-    #print "warning: Dmatrix set to Identity"
+ #   Dmatrix = np.diag(np.ones(len(coords.mapIndices)))
+ #   print "warning: Dmatrix set to Identity"
+    #Note to self: I have to decide if this is the most logical PSF. Perhaps I want the correct pixel of the "other side" to always peak at 1...
     PSF = np.dot(Dmatrix,PSF)
     coaddedMap = np.dot(Dmatrix,coaddedMap)
     mapNoiseCovariance = np.dot(PSF[:,coords.mapIndexLocationsInExtendedIndexList],np.transpose(Dmatrix))
