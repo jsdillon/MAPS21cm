@@ -17,19 +17,10 @@ def VisibilitySimulator(s,PBs,ps,times,coords):
     
     #TODO: this ignores polarization and differing primary beams
     if s.simulateVisibilitiesWithGSM:
+        if s.GSMNSIDE < s.mapNSIDE:
+            s.GSMNSIDE = s.mapNSIDE
         GSM = GlobalSkyModel(s.freq, s.GSMlocation, s.GSMNSIDE)
         interpoltedGSMRotated = hp.get_interp_val(GSM.hpMap,-coordsGSM.galCoords.b.radian+np.pi/2, np.asarray(coordsGSM.galCoords.l.radian))        
-        
-        
-        interpoltedGSMRotated = np.zeros(len(interpoltedGSMRotated))
-        testSourceIndex = hp.query_disc(coords.NSIDE, hp.ang2vec(np.pi/2, 0), s.facetSize/10 * 2*np.pi/360.0)[0]
-        facetTest = np.zeros(len(interpoltedGSMRotated))
-        facetTest[coords.mapIndices] = 1
-        facetTest[testSourceIndex] = 2
-        hp.mollview(facetTest, title="facetTest")
-        interpoltedGSMRotated[testSourceIndex] = 1
-        #hp.mollview(np.log10(interpoltedGSMRotated), title="GSM in Rotated Equatorial Coordinates")
-        
         
         #loop over times and baselines to calculate visibilities
         for t in range(len(times.LSTs)):

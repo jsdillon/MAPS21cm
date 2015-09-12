@@ -13,7 +13,7 @@ integrationTime = 10 #seconds
 singleBaselineVisibilityNoise = 1.0 #Jy
 
 scriptDirectory = os.path.dirname(os.path.abspath(__file__))
-LSTs = np.asarray(np.arange(0,24.0,integrationTime/60.0/24.0))
+LSTs = np.asarray(np.arange(0,24.0,integrationTime/60.0/60.0))
 np.savetxt(scriptDirectory + "/LSTs.dat",LSTs)
 
 config = ConfigParser.ConfigParser()

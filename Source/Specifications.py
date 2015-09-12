@@ -86,3 +86,9 @@ class Specifications:
         self.nAntennas = len(self.antennaPositions)
         self.nPointings = len(self.pointingCenters)
         self.convertJyToKFactor = (const.c)**2 / (2 * const.k * (self.freq*1e6)**2 * 1e26) #multiply by this number to convert Jy to K
+    
+    def OverrideMapmakingVariables(self,kwargs):
+        for key in kwargs.keys():        
+            if getattr(self,key,None) is not None:        
+                print "Overriding " + key + " and setting it to " + str(kwargs[key])
+                setattr(self,key,kwargs[key])

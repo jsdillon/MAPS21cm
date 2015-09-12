@@ -14,7 +14,6 @@ class PointSourceCatalog:
             self.freq = s.freq
             self.catalog = np.loadtxt(s.pointSourceCatalogFilename)
             self.catalog = self.catalog[self.catalog[:,2] < 2*s.pointSourceBeamWeightedFluxLimitAtReferenceFreq, :] #assumes that the beam has a max value of 1, with an extra factor of 2 buffer
-    
             
             # Determines if the beam-weighted flux of each point source is above the limit and deletes it from the catalog if it isn't
             middleLSTindex = int(math.floor(len(times.LSTs)/2.0))
@@ -22,7 +21,6 @@ class PointSourceCatalog:
             primaryBeamWeights = hp.get_interp_val(PBs.beamSquared("X","x",s.pointings[middleLSTindex]), np.pi/2-psAlts, psAzs)
             beamWeightedFluxesAtReferenceFreq = primaryBeamWeights * self.catalog[:,2]
             self.catalog = self.catalog[beamWeightedFluxesAtReferenceFreq > s.pointSourceBeamWeightedFluxLimitAtReferenceFreq, :]
-            print str(len(self.catalog)) + " point sources identified for specific modeling."
             
             #Convert into a more useful format        
             self.RAs = self.catalog[:,0] * 2*np.pi/360
@@ -33,3 +31,5 @@ class PointSourceCatalog:
             self.nSources = len(self.fluxes)
         except:
             self.nSources = 0
+        
+        print str(len(self.catalog)) + " point sources identified for specific modeling."

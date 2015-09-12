@@ -16,7 +16,7 @@ from Source.GlobalSkyModel import GlobalSkyModel
 plt.close('all')
 
 
-def Mapmaker(freq = 150, configFile = "configuration.txt", overridePSFExtension = -1):
+def Mapmaker(freq = 150, configFile = "configuration.txt", **kwargs):
     """This function makes maps from visibilities and also calculates the associated map statistics. 
     
     Saves the results to binary (as pickles or numpy arryas) and returns the folder where they are located"""
@@ -24,15 +24,13 @@ def Mapmaker(freq = 150, configFile = "configuration.txt", overridePSFExtension 
     #Load in everything we need, figure out which LSTs to work with
     scriptDirectory = os.path.dirname(os.path.abspath(__file__))
     s = Specifications(scriptDirectory, "/" + configFile,freq)
-    if overridePSFExtension > 0:
-        s.PSFextensionBeyondFacetFactor = overridePSFExtension    
+    s.OverrideMapmakingVariables(kwargs)
     
     times = Geometry.Times(s)
     times.CutOutUnusedLSTsAndGroupIntoSnapshots(s)
     coords = Geometry.Coordinates(s)
     PBs = PrimaryBeams(s)
     ps = PointSourceCatalog(s,PBs,times)
-    print s.convertJyToKFactor
     
     #Simulate or load visibilities
     if s.simulateVisibilitiesWithGSM or s.simulateVisibilitiesWithPointSources:
@@ -64,8 +62,9 @@ def Mapmaker(freq = 150, configFile = "configuration.txt", overridePSFExtension 
             
     #Renormalize maps and PSFs and save results
     Dmatrix = np.diag(np.diag(PSF[:,coords.mapIndexLocationsInExtendedIndexList])**(-1))
- #   Dmatrix = np.diag(np.ones(len(coords.mapIndices)))
- #   print "warning: Dmatrix set to Identity"
+    Dmatrix = np.diag(np.ones((coords.nFacetPixels)) / PSF[coords.mapIndexOfFacetCenter,coords.extendedIndexOfFacetCenter])
+    print "warning: Dmatrix proportional to the identity"
+
     #Note to self: I have to decide if this is the most logical PSF. Perhaps I want the correct pixel of the "other side" to always peak at 1...
     PSF = np.dot(Dmatrix,PSF)
     coaddedMap = np.dot(Dmatrix,coaddedMap)
@@ -75,39 +74,37 @@ def Mapmaker(freq = 150, configFile = "configuration.txt", overridePSFExtension 
     
     
 
-
-    s.GSMNSIDE = s.mapNSIDE
-    coordsGSM = Geometry.Coordinates(s,True)
-    GSM = GlobalSkyModel(s.freq, s.GSMlocation, s.GSMNSIDE)
-    interpoltedGSMRotated = hp.get_interp_val(GSM.hpMap,-coordsGSM.galCoords.b.radian+np.pi/2, np.asarray(coordsGSM.galCoords.l.radian))
-    interpoltedGSMRotated = np.zeros(len(interpoltedGSMRotated))
-    testSourceIndex = hp.query_disc(coords.NSIDE, hp.ang2vec(np.pi/2, 0), s.facetSize/10 * 2*np.pi/360.0)[0]
-    interpoltedGSMRotated[testSourceIndex] = 1
-    convolvedGSM = np.dot(PSF,interpoltedGSMRotated[coords.extendedIndices])
-    plt.figure()    
-    hp.mollview(interpoltedGSMRotated, title="interpoltedGSMRotated")
-    
-    def plotFacet(s,coords,facetMap,plotTitle):
-        mapToPlot = np.zeros(coords.mapPixels)
-        mapToPlot[coords.mapIndices] = facetMap    
-        hp.mollview(mapToPlot, title=plotTitle)
-        plt.axis(np.asarray([-1,1,-1,1]) * s.facetSize/50)
-    plt.figure()
-    plt.plot(visibilities)
-    plotFacet(s,coords,interpoltedGSMRotated[coords.mapIndices],"GSM")    
-
-    mapToPlot = np.zeros(coords.mapPixels)
-    mapToPlot[coords.mapIndices] = PSF[:,np.nonzero(coords.extendedIndices == testSourceIndex)[0][0]]    
-    hp.mollview(mapToPlot, title="PSF")
-    plt.axis(np.asarray([-1,1,-1,1]) * s.facetSize/50)
-
-
-    plotFacet(s,coords,convolvedGSM,"Convolved GSM")
-    plotFacet(s,coords,coaddedMap,"coaddedMap")
-    plotFacet(s,coords,coaddedMap/convolvedGSM,'map/convolved ratio')
-      
-    plt.plot(np.diag(Dmatrix))
-    plt.show()
+#
+#    s.GSMNSIDE = s.mapNSIDE
+#    coordsGSM = Geometry.Coordinates(s,True)
+#    GSM = GlobalSkyModel(s.freq, s.GSMlocation, s.GSMNSIDE)
+#    interpoltedGSMRotated = hp.get_interp_val(GSM.hpMap,-coordsGSM.galCoords.b.radian+np.pi/2, np.asarray(coordsGSM.galCoords.l.radian))
+#
+#    convolvedGSM = np.dot(PSF,interpoltedGSMRotated[coords.extendedIndices])
+#    plt.figure()    
+#    hp.mollview(interpoltedGSMRotated, title="interpoltedGSMRotated")
+#    
+#    def plotFacet(s,coords,facetMap,plotTitle):
+#        mapToPlot = np.zeros(coords.mapPixels)
+#        mapToPlot[coords.mapIndices] = facetMap    
+#        hp.mollview(mapToPlot, title=plotTitle)
+#        plt.axis(np.asarray([-1,1,-1,1]) * s.facetSize/50)
+#    plt.figure()
+#    plt.plot(visibilities)
+#    plotFacet(s,coords,interpoltedGSMRotated[coords.mapIndices],"GSM")    
+#
+#    mapToPlot = np.zeros(coords.mapPixels)
+#    mapToPlot[coords.mapIndices] = PSF[:,coords.extendedIndexOfFacetCenter]
+#    hp.mollview(mapToPlot, title="PSF")
+#    plt.axis(np.asarray([-1,1,-1,1]) * s.facetSize/50)
+#
+#
+#    plotFacet(s,coords,convolvedGSM,"Convolved GSM")
+#    plotFacet(s,coords,coaddedMap,"coaddedMap")
+#    plotFacet(s,coords,coaddedMap/convolvedGSM,'map/convolved ratio')
+#      
+#    plt.plot(np.diag(Dmatrix))
+#    plt.show()
 
 
     

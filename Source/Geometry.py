@@ -40,7 +40,8 @@ class Coordinates:
         
         extendedIndexDict = dict([ (self.extendedIndices[i], i) for i in range(self.nExtendedPixels) ])
         self.mapIndexLocationsInExtendedIndexList = np.asarray([extendedIndexDict[mapIndex] for mapIndex in self.mapIndices])
-        
+        self.mapIndexOfFacetCenter = np.dot(self.mapIndices ==  hp.ang2pix(self.NSIDE,np.pi/2,0.0),np.arange(len(self.mapIndices)))
+        self.extendedIndexOfFacetCenter = np.dot(self.extendedIndices ==  hp.ang2pix(self.NSIDE,np.pi/2,0.0),np.arange(len(self.extendedIndices)))
         
                         
 # Convert RAs and Decs in radians to altitudes and azimuths in radians, given an LST and array location in the specs object
@@ -69,8 +70,7 @@ class Times:
     """ This class contains information about the integration and snapshot LSTs. """
     def __init__(self, s):   
         self.LSTs = np.loadtxt(s.LSTsFilename)
-        self.integrationTime = np.median(self.LSTs[1:] - self.LSTs[0:len(self.LSTs)-1]) * 24 * 60
-        deltaTs = self.LSTs
+        self.integrationTime = np.median(self.LSTs[1:] - self.LSTs[0:len(self.LSTs)-1]) * 60 * 60
         self.useThisLST = np.ones(len(self.LSTs))
         self.snapshots = [] 
         
@@ -84,7 +84,7 @@ class Times:
                 angularDistanceFromFacetToPointing = np.min(np.array([hp.rotator.angdist([np.pi/2 - facetCenterAlt, facetCenterAz],[np.pi/2 - s.pointingCenters[s.pointings[t,ant]][0], s.pointingCenters[s.pointings[t,ant]][1]]) for ant in range(s.nAntennas)]))
             if angularDistanceFromFacetToPointing > s.MaximumAllowedAngleFromFacetCenterToPointingCenter*2.0*np.pi/360.0:
                 self.useThisLST[t] = False
-    
+
         #Groups LST indices into snapshots, assuming that all LSTs are evenly spaced in time
         LSTindicesToUse = np.nonzero(self.useThisLST)[0]
         closeEnoughLSTs = len(LSTindicesToUse)
