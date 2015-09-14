@@ -115,6 +115,20 @@ def rephaseVisibilitiesToSnapshotCenter(s,visibilities,times):
         for t in range(len(snapshot.LSTs)):
             thisLSTAlt, thisLSTaz = convertEquatorialToHorizontal(s,s.facetRAinRad,s.facetDecinRad,snapshot.LSTs[t])
             deltaTheta = centralSnapshotFacetCenterVector - convertAltAzToCartesian(thisLSTAlt, thisLSTaz)
-            rephaseFactors = np.exp(-s.k * s.baselines.dot(deltaTheta))
+            rephaseFactors = np.exp(-1j * s.k * s.baselines.dot(deltaTheta))
             visibilities[snapshot.LSTindices[t],:] = visibilities[snapshot.LSTindices[t],:] * rephaseFactors
 
+#rephaseVisibilities(allVisibilities, snapshotLSTindices, LSTs, baselines, facetCenterPointings);
+#void rephaseVisibilities(vector< vector<complex> >& allVisibilities, vector< vector<int> >& snapshotLSTindices, vector<double> LSTs, vector<cartVec>& baselines, vector<horizPoint>& facetCenterPointings){
+#	for (int s = 0; s < snapshotLSTindices.size(); s++){
+#		int snapshotCentralLSTindex = snapshotLSTindices[s][int(round(snapshotLSTindices[s].size()/2.0-.5))];
+#		cartVec centralSnapshotFacetCenterVector = facetCenterPointings[snapshotCentralLSTindex].toVec();
+#		for (int i = 0; i < snapshotLSTindices[s].size(); i++){
+#			cartVec deltaTheta = centralSnapshotFacetCenterVector - (facetCenterPointings[snapshotLSTindices[s][i]]).toVec();
+#			for (int b = 0; b < nBaselines; b++){
+#				double argument = -k * baselines[b].dot(deltaTheta);
+#				allVisibilities[b][snapshotLSTindices[s][i]] = allVisibilities[b][snapshotLSTindices[s][i]]	* complex(cos(argument),sin(argument));
+#			}
+#		}
+#	}
+#}

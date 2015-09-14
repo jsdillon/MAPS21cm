@@ -13,7 +13,6 @@ class Specifications:
     def __init__(self,directory,configFilename,freq):
         print "Now loading in specifications..."
         self.freq = freq
-        self.k = 2*np.pi * freq*1e6 / const.c
         config = ConfigParser.ConfigParser()
         self.mainDirectory = directory
         config.read(directory + configFilename)
@@ -29,7 +28,6 @@ class Specifications:
             self.allBaselinePairs = np.loadtxt(config.get('Array Settings','allBaselinePairsListFile').replace('[MainDirectory]',self.mainDirectory))
             self.baselineRedundancies = np.ones(self.baselines.shape[0]) #since no baselines are redundant
         self.arrayLat = config.getfloat('Array Settings','arrayLat')
-        self.arrayLatInRad = self.arrayLat * math.pi/180.0;
         self.arrayLong = config.getfloat('Array Settings','arrayLong')
 
         
@@ -66,9 +64,7 @@ class Specifications:
         
         #FACET SETTINGS
         self.facetRA = config.getfloat('Mapmaking Specifications','facetRA')
-        self.facetRAinRad = self.facetRA * math.pi/180.0;
         self.facetDec = config.getfloat('Mapmaking Specifications','facetDec')
-        self.facetDecinRad = self.facetDec * math.pi/180.0;
         self.facetSize = config.getfloat('Mapmaking Specifications','facetSize')
         self.MaximumAllowedAngleFromFacetCenterToPointingCenter = config.getfloat('Mapmaking Specifications','MaximumAllowedAngleFromFacetCenterToPointingCenter')
         
@@ -77,18 +73,26 @@ class Specifications:
         self.PSFextensionBeyondFacetFactor = config.getfloat('Mapmaking Specifications', 'PSFextensionBeyondFacetFactor')    
         self.integrationsPerSnapshot = config.getint('Mapmaking Specifications', 'integrationsPerSnapshot')
         self.PSFforPointSources = config.getboolean('Mapmaking Specifications','PSFforPointSources')
-        self.mapPixels = 12 * self.mapNSIDE**2
         
         #OUTPUT SETTINGS
         self.resultsFolder = config.get('Mapmaking Specifications','resultsFolder').replace('[MainDirectory]',self.mainDirectory) + "{:.3f}".format(self.freq) + "/"        
-
-        #Other calculations based on inputs
-        self.nAntennas = len(self.antennaPositions)
-        self.nPointings = len(self.pointingCenters)
-        self.convertJyToKFactor = (const.c)**2 / (2 * const.k * (self.freq*1e6)**2 * 1e26) #multiply by this number to convert Jy to K
+        
+        self.CalculateBasicParameters()
     
     def OverrideMapmakingVariables(self,kwargs):
         for key in kwargs.keys():        
             if getattr(self,key,None) is not None:        
                 print "Overriding " + key + " and setting it to " + str(kwargs[key])
                 setattr(self,key,kwargs[key])
+        self.CalculateBasicParameters()
+    
+    #Other calculations based on inputs. This gets called in init() and again after overriding variables.
+    def CalculateBasicParameters(self):
+        self.k = 2*np.pi * self.freq*1e6 / const.c        
+        self.arrayLatInRad = self.arrayLat * math.pi/180.0;         
+        self.nAntennas = len(self.antennaPositions)
+        self.nPointings = len(self.pointingCenters)
+        self.convertJyToKFactor = (const.c)**2 / (2 * const.k * (self.freq*1e6)**2 * 1e26) #multiply by this number to convert Jy to K
+        self.mapPixels = 12 * self.mapNSIDE**2
+        self.facetDecinRad = self.facetDec * math.pi/180.0
+        self.facetRAinRad = self.facetRA * math.pi/180.0

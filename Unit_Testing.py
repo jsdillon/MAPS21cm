@@ -69,10 +69,12 @@ def TestPointSourcesOnly():
 
 #Test 3: Error as a function of PSFextensionBeyondFacetFactor
 def TestErrorVsPSFext():
+    plt.figure()    
     PSFErrors = []
     PSFextFactors = np.arange(1,2.6,.1)
     for extFactor in PSFextFactors:
-        resultsDirectory = Mapmaker(PSFextensionBeyondFacetFactor = extFactor, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = True)
+#        resultsDirectory = Mapmaker(PSFextensionBeyondFacetFactor = extFactor, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = True)
+        resultsDirectory = Mapmaker(integrationsPerSnapshot = 1, PSFextensionBeyondFacetFactor = extFactor, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = True)
         s, coords, times, ps, Dmatrix, PSF, coaddedMap, mapNoiseCovariance, pointSourcePSF = loadAllResults(resultsDirectory)
         convolvedPointSources = np.dot(pointSourcePSF, ps.scaledFluxes)
         s.GSMNSIDE = s.mapNSIDE
@@ -87,19 +89,26 @@ def TestErrorVsPSFext():
 
 #Test 4: Error as a function of integrationsPerSnapshot
 def TestErrorVsIntegrations():
-    resultsDirectory = Mapmaker(PSFextensionBeyondFacetFactor = 3, integrationsPerSnapshot = 1, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = True, MaximumAllowedAngleFromFacetCenterToPointingCenter = 5, GSMNSIDE = 32, mapNSIDE = 32)
+    resultsDirectory = Mapmaker(PSFextensionBeyondFacetFactor = 3, integrationsPerSnapshot = 1, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = True, MaximumAllowedAngleFromFacetCenterToPointingCenter = 4.355, GSMNSIDE = 32, mapNSIDE = 32, facetRA = 60)
     s, coords, times, ps, Dmatrix, PSF, coaddedMap, mapNoiseCovariance, pointSourcePSF = loadAllResults(resultsDirectory)
+    plotFacet(s,coords,coaddedMap,'Coadded Map with 1 Integration per Snapshot')    
     trueMap = np.copy(coaddedMap)
     intErrors = []
-    integrationsList = np.arange(3,30,2)
+    integrationsList = np.asarray([3, 9, 27, 81, 243])
     for integrations in integrationsList:
-        resultsDirectory = Mapmaker(PSFextensionBeyondFacetFactor = 3, integrationsPerSnapshot = integrations, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = True, MaximumAllowedAngleFromFacetCenterToPointingCenter = 5, GSMNSIDE = 32, mapNSIDE = 32)
+        resultsDirectory = Mapmaker(PSFextensionBeyondFacetFactor = 3, integrationsPerSnapshot = integrations, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = True, MaximumAllowedAngleFromFacetCenterToPointingCenter = 4.355, GSMNSIDE = 32, mapNSIDE = 32, facetRA = 60)
         s, coords, times, ps, Dmatrix, PSF, coaddedMap, mapNoiseCovariance, pointSourcePSF = loadAllResults(resultsDirectory)
+        #plotFacet(s,coords,coaddedMap,'Coadded Map with ' + str(integrations) + ' Integrations per Snapshot')
         intErrors.append(np.linalg.norm(coaddedMap - trueMap)/np.linalg.norm(trueMap))
-    plt.semilogy(integrationsList, intErrors)
+    plt.figure()    
+    plt.loglog(integrationsList, intErrors)
     plt.xlabel('Number of Integrations Per Snapshot')
     plt.ylabel('Error Compared to 1 Integration Per Snapshot')
 
+
+###############################################################################################################################
+#   VARIOUS TESTS OF THE MAPMAKING ALGORITHM REPRODUCING DILLON ET AL. (2015) RESULTS
+###############################################################################################################################
 
 #TestGSMOnly()
 #TestPointSourcesOnly()
