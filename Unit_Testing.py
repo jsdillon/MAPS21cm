@@ -68,13 +68,11 @@ def TestPointSourcesOnly():
     print "Error = " + str(np.linalg.norm(coaddedMap - convolvedPointSources)/np.linalg.norm(convolvedPointSources))
 
 #Test 3: Error as a function of PSFextensionBeyondFacetFactor
-def TestErrorVsPSFext():
-    plt.figure()    
+def TestErrorVsPSFext():    
     PSFErrors = []
     PSFextFactors = np.arange(1,2.6,.1)
     for extFactor in PSFextFactors:
-#        resultsDirectory = Mapmaker(PSFextensionBeyondFacetFactor = extFactor, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = True)
-        resultsDirectory = Mapmaker(integrationsPerSnapshot = 1, PSFextensionBeyondFacetFactor = extFactor, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = True)
+        resultsDirectory = Mapmaker(PSFextensionBeyondFacetFactor = extFactor, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = True)
         s, coords, times, ps, Dmatrix, PSF, coaddedMap, mapNoiseCovariance, pointSourcePSF = loadAllResults(resultsDirectory)
         convolvedPointSources = np.dot(pointSourcePSF, ps.scaledFluxes)
         s.GSMNSIDE = s.mapNSIDE
@@ -83,20 +81,21 @@ def TestErrorVsPSFext():
         interpoltedGSMRotated = hp.get_interp_val(GSM.hpMap,-coordsGSM.galCoords.b.radian+np.pi/2, np.asarray(coordsGSM.galCoords.l.radian))
         convolvedGSM = np.dot(PSF,interpoltedGSMRotated[coords.extendedIndices])
         PSFErrors.append(np.linalg.norm(coaddedMap - convolvedPointSources - convolvedGSM)/np.linalg.norm(convolvedPointSources + convolvedGSM))
+    plt.figure()
     plt.semilogy(PSFextFactors, PSFErrors)
     plt.xlabel('PSF Size Relative to Facet Size')
     plt.ylabel('PSF Convolution vs. Mapmaking Error')
 
 #Test 4: Error as a function of integrationsPerSnapshot
 def TestErrorVsIntegrations():
-    resultsDirectory = Mapmaker(PSFextensionBeyondFacetFactor = 3, integrationsPerSnapshot = 1, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = True, MaximumAllowedAngleFromFacetCenterToPointingCenter = 4.355, GSMNSIDE = 32, mapNSIDE = 32, facetRA = 60)
+    resultsDirectory = Mapmaker(PSFextensionBeyondFacetFactor = 3, integrationsPerSnapshot = 1, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = True, MaximumAllowedAngleFromFacetCenterToPointingCenter = 4.33, GSMNSIDE = 32, mapNSIDE = 32, facetRA = .01)
     s, coords, times, ps, Dmatrix, PSF, coaddedMap, mapNoiseCovariance, pointSourcePSF = loadAllResults(resultsDirectory)
-    plotFacet(s,coords,coaddedMap,'Coadded Map with 1 Integration per Snapshot')    
+    #plotFacet(s,coords,coaddedMap,'Coadded Map with 1 Integration per Snapshot')    
     trueMap = np.copy(coaddedMap)
     intErrors = []
     integrationsList = np.asarray([3, 9, 27, 81, 243])
     for integrations in integrationsList:
-        resultsDirectory = Mapmaker(PSFextensionBeyondFacetFactor = 3, integrationsPerSnapshot = integrations, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = True, MaximumAllowedAngleFromFacetCenterToPointingCenter = 4.355, GSMNSIDE = 32, mapNSIDE = 32, facetRA = 60)
+        resultsDirectory = Mapmaker(PSFextensionBeyondFacetFactor = 3, integrationsPerSnapshot = integrations, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = True, MaximumAllowedAngleFromFacetCenterToPointingCenter = 4.33, GSMNSIDE = 32, mapNSIDE = 32, facetRA = .01)
         s, coords, times, ps, Dmatrix, PSF, coaddedMap, mapNoiseCovariance, pointSourcePSF = loadAllResults(resultsDirectory)
         #plotFacet(s,coords,coaddedMap,'Coadded Map with ' + str(integrations) + ' Integrations per Snapshot')
         intErrors.append(np.linalg.norm(coaddedMap - trueMap)/np.linalg.norm(trueMap))

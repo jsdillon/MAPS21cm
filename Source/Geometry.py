@@ -71,6 +71,14 @@ class Times:
     def __init__(self, s):   
         self.LSTs = np.loadtxt(s.LSTsFilename)
         self.integrationTime = np.median(self.LSTs[1:] - self.LSTs[0:len(self.LSTs)-1]) * 60 * 60
+        LSTrange = self.LSTs[-1]*360.0/24 - self.LSTs[0]*360.0/24
+        if np.abs(s.facetRA - self.LSTs[0]*360.0/24) < LSTrange/4 or np.abs(s.facetRA - self.LSTs[-1]*360.0/24) < LSTrange/4: #this fixes the problem when the facet center is near RA=0
+            self.LSTs = np.fft.fftshift(self.LSTs)
+            s.pointings = np.fft.fftshift(s.pointings)
+            if s.useOnlyUniqueBaselines:
+                s.noisePerUniqueBaseline = np.fft.fftshift(s.noisePerUniqueBaseline)
+            else:
+                s.noisePerAntenna = np.fft.fftshift(s.noisePerAntenna)
         self.useThisLST = np.ones(len(self.LSTs))
         self.snapshots = [] 
         
