@@ -44,7 +44,6 @@ def Mapmaker(freq = 150, configFile = "configuration.txt", **kwargs):
     visibilities /= s.convertJyToKFactor #converts to temperature units
     Geometry.rephaseVisibilitiesToSnapshotCenter(s,visibilities,times)
     MapMats.inverseCovarianceWeightVisibilities(s,visibilities)
-
     
     #Perform mapmaking and calculate PSFs
     coaddedMap = np.zeros(coords.nFacetPixels)
@@ -61,9 +60,8 @@ def Mapmaker(freq = 150, configFile = "configuration.txt", **kwargs):
             pointSourcePSF += 2 * np.real(np.dot(KAtranspose[coords.mapIndexLocationsInExtendedIndexList,:], np.dot(np.diag(Ninv), pointSourceAmatrix)))
             
     #Renormalize maps and PSFs and save results
-    Dmatrix = np.diag(np.diag(PSF[:,coords.mapIndexLocationsInExtendedIndexList])**(-1))
+    #Dmatrix = np.diag(np.diag(PSF[:,coords.mapIndexLocationsInExtendedIndexList])**(-1))
     Dmatrix = np.diag(np.ones((coords.nFacetPixels)) / PSF[coords.mapIndexOfFacetCenter,coords.extendedIndexOfFacetCenter])
-    print "warning: Dmatrix proportional to the identity"
 
     #Note to self: I have to decide if this is the most logical PSF. Perhaps I want the correct pixel of the "other side" to always peak at 1...
     PSF = np.dot(Dmatrix,PSF)
@@ -71,46 +69,6 @@ def Mapmaker(freq = 150, configFile = "configuration.txt", **kwargs):
     mapNoiseCovariance = np.dot(PSF[:,coords.mapIndexLocationsInExtendedIndexList],np.transpose(Dmatrix))
     if s.PSFforPointSources and ps.nSources > 0:
         pointSourcePSF = np.dot(Dmatrix,pointSourcePSF)
-    
-    
-
-#
-#    s.GSMNSIDE = s.mapNSIDE
-#    coordsGSM = Geometry.Coordinates(s,True)
-#    GSM = GlobalSkyModel(s.freq, s.GSMlocation, s.GSMNSIDE)
-#    interpoltedGSMRotated = hp.get_interp_val(GSM.hpMap,-coordsGSM.galCoords.b.radian+np.pi/2, np.asarray(coordsGSM.galCoords.l.radian))
-#
-#    convolvedGSM = np.dot(PSF,interpoltedGSMRotated[coords.extendedIndices])
-#    plt.figure()    
-#    hp.mollview(interpoltedGSMRotated, title="interpoltedGSMRotated")
-#    
-#    def plotFacet(s,coords,facetMap,plotTitle):
-#        mapToPlot = np.zeros(coords.mapPixels)
-#        mapToPlot[coords.mapIndices] = facetMap    
-#        hp.mollview(mapToPlot, title=plotTitle)
-#        plt.axis(np.asarray([-1,1,-1,1]) * s.facetSize/50)
-#    plt.figure()
-#    plt.plot(visibilities)
-#    plotFacet(s,coords,interpoltedGSMRotated[coords.mapIndices],"GSM")    
-#
-#    mapToPlot = np.zeros(coords.mapPixels)
-#    mapToPlot[coords.mapIndices] = PSF[:,coords.extendedIndexOfFacetCenter]
-#    hp.mollview(mapToPlot, title="PSF")
-#    plt.axis(np.asarray([-1,1,-1,1]) * s.facetSize/50)
-#
-#
-#    plotFacet(s,coords,convolvedGSM,"Convolved GSM")
-#    plotFacet(s,coords,coaddedMap,"coaddedMap")
-#    plotFacet(s,coords,coaddedMap/convolvedGSM,'map/convolved ratio')
-#      
-#    plt.plot(np.diag(Dmatrix))
-#    plt.show()
-
-
-    
-    
-    
-    
     
     MapMats.saveAllResults(s,coords,times,ps,Dmatrix,PSF,coaddedMap,pointSourcePSF,mapNoiseCovariance)
     return s.resultsFolder

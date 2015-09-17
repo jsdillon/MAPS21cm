@@ -74,11 +74,8 @@ class Times:
         LSTrange = self.LSTs[-1]*360.0/24 - self.LSTs[0]*360.0/24
         if np.abs(s.facetRA - self.LSTs[0]*360.0/24) < LSTrange/4 or np.abs(s.facetRA - self.LSTs[-1]*360.0/24) < LSTrange/4: #this fixes the problem when the facet center is near RA=0
             self.LSTs = np.fft.fftshift(self.LSTs)
-            s.pointings = np.fft.fftshift(s.pointings)
-            if s.useOnlyUniqueBaselines:
-                s.noisePerUniqueBaseline = np.fft.fftshift(s.noisePerUniqueBaseline)
-            else:
-                s.noisePerAntenna = np.fft.fftshift(s.noisePerAntenna)
+            s.pointings = np.fft.fftshift(s.pointings, axes=0) #only shifts along the LST axis, not the antenna axis
+            s.noisePerAntenna = np.fft.fftshift(s.noisePerAntenna, axes=0) #only shifts along the LST axis, not the antenna axis
         self.useThisLST = np.ones(len(self.LSTs))
         self.snapshots = [] 
         
@@ -104,10 +101,7 @@ class Times:
         self.useThisLST[LSTindicesToUse] = True
         self.LSTs = self.LSTs[self.useThisLST == True]
         s.pointings = s.pointings[self.useThisLST == True]
-        if s.useOnlyUniqueBaselines:
-            s.noisePerUniqueBaseline = s.noisePerUniqueBaseline[self.useThisLST == True]
-        else:
-            s.noisePerAntenna = s.noisePerAntenna[self.useThisLST == True]
+        s.noisePerAntenna = s.noisePerAntenna[self.useThisLST == True]
             
         #Make snapshots
         LSTindicesGrouped = np.reshape(np.arange(len(self.LSTs)),(len(LSTindicesToUse)/s.integrationsPerSnapshot, s.integrationsPerSnapshot))

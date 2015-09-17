@@ -2,6 +2,13 @@
 # 			SPECIFICATIONS FOR JOINT MAPMAKING AND POWER SPECTRUM ESTIMATION PIPELINE
 
 #########################################################################################################
+[Pipeline Settings]
+#########################################################################################################
+frequencyRange = 150 155
+
+
+
+#########################################################################################################
 [Array Settings]
 #########################################################################################################
 
@@ -16,6 +23,7 @@ allBaselinesListFile: [MainDirectory]/InstrumentData/all_baselines.dat
 allBaselinePairsListFile: [MainDirectory]/InstrumentData/all_baseline_pairs.dat
 uniqueBaselinesListFile: [MainDirectory]/InstrumentData/unique_baselines.dat
 baselineRedundancyFile: [MainDirectory]/InstrumentData/redundancy.dat
+antennaPairDictFile: [MainDirectory]/InstrumentData/antennaPairUniqueBaselineIndexDict.p
 arrayLat: -30.706267
 arrayLong: 21.321317
 
@@ -37,9 +45,7 @@ beamNSIDE = 64
 LSTsFilename: [MainDirectory]/ObservationData/LSTs.dat
 PointingListFilename: [MainDirectory]/ObservationData/pointings.dat
 PointingCenterDictionaryFilename: [MainDirectory]/ObservationData/pointing_centers.p
-noisePerUniqueBaselineFilename: [MainDirectory]/ObservationData/noisePerUniqueBaseline.npy
-noisePerAntennaFilename: [MainDirectory]/ObservationData/noisePerUniqueBaseline.npy
-#   loads the relevant file from the above two depending on useOnlyUniqueBaselines
+noisePerAntennaPath: [MainDirectory]/ObservationData/AntennaNoise/AntennaNoise_[freq]_MHz.npy
 
 #POINT SOURCE CATALOG SETTINGS
 pointSourceCatalogFilename: [MainDirectory]/ObservationData/mwacs_all_b3_140206.dat
@@ -52,10 +58,6 @@ simulateVisibilitiesWithGSM: true
 simulateVisibilitiesWithPointSources: false
 GSMlocation: [MainDirectory]/ObservationData/GSM/
 GSMNSIDE: 64
-
-
-
-
 
 #########################################################################################################
 [Mapmaking Specifications]

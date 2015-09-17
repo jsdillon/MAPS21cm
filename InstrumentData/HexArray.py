@@ -5,6 +5,7 @@
 
 import os
 import numpy as np
+import cPickle as pickle
 
 #HARD CODED SETTINGS
 Separation = 14.6
@@ -27,11 +28,11 @@ for ant1 in range(nAntennas):
 		baselinePairs.append((ant1, ant2))
 
 baselineDict = {}
-for b in baselines:
-	if baselineDict.has_key(b):
-		baselineDict[b] = baselineDict[b] + 1
+for b in range(len(baselines)):
+	if baselineDict.has_key(baselines[b]):
+		baselineDict[baselines[b]].append(baselinePairs[b])
 	else:
-		baselineDict[b] = 1
+		baselineDict[baselines[b]] = [baselinePairs[b]]
 
 print "With", len(positions), "antennas there are", len(baselineDict.items()), "unique baselines."
 
@@ -40,4 +41,11 @@ np.savetxt(scriptDirectory + "/antenna_positions.dat",np.asarray(positions))
 np.savetxt(scriptDirectory + "/all_baselines.dat",np.asarray(baselines)/(1.0*precisionFactor))
 np.savetxt(scriptDirectory + "/all_baseline_pairs.dat",np.asarray(baselinePairs),fmt='%i')
 np.savetxt(scriptDirectory + "/unique_baselines.dat",np.asarray([uniqueBaseline[0] for uniqueBaseline in baselineDict.items()])/(1.0*precisionFactor))
-np.savetxt(scriptDirectory + "/redundancy.dat",np.asarray([uniqueBaseline[1] for uniqueBaseline in baselineDict.items()]),fmt='%i')
+np.savetxt(scriptDirectory + "/redundancy.dat",np.asarray([len(uniqueBaseline[1]) for uniqueBaseline in baselineDict.items()]),fmt='%i')
+
+antennaPairDict = {}
+for uniqueIndex in range(len(baselineDict.items())):
+	allItems = baselineDict.items()
+	for antennaPair in allItems[uniqueIndex][1]:
+		antennaPairDict[antennaPair] = uniqueIndex
+pickle.dump(antennaPairDict, open(scriptDirectory + "/antennaPairUniqueBaselineIndexDict.p", 'w'))

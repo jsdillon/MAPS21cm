@@ -5,12 +5,12 @@ import ConfigParser
 import numpy as np
 import math
 import ephem
-import pickle
+import cPickle as pickle
 import scipy.constants as const
 
 #This class takes the location of the configuration file and loads relevant specs as attributes to the object
 class Specifications:
-    def __init__(self,directory,configFilename,freq):
+    def __init__(self,directory,configFilename,freq=150):
         print "Now loading in specifications..."
         self.freq = freq
         config = ConfigParser.ConfigParser()
@@ -25,11 +25,12 @@ class Specifications:
             self.baselineRedundancies = np.loadtxt(config.get('Array Settings','baselineRedundancyFile').replace('[MainDirectory]',self.mainDirectory))
         else:
             self.baselines = np.loadtxt(config.get('Array Settings','allBaselinesListFile').replace('[MainDirectory]',self.mainDirectory))
-            self.allBaselinePairs = np.loadtxt(config.get('Array Settings','allBaselinePairsListFile').replace('[MainDirectory]',self.mainDirectory))
             self.baselineRedundancies = np.ones(self.baselines.shape[0]) #since no baselines are redundant
+        self.allBaselinePairs = np.loadtxt(config.get('Array Settings','allBaselinePairsListFile').replace('[MainDirectory]',self.mainDirectory))
+        self.antennaPairDict = pickle.load(open(config.get('Array Settings','antennaPairDictFile').replace('[MainDirectory]',self.mainDirectory),"rb"))
         self.arrayLat = config.getfloat('Array Settings','arrayLat')
         self.arrayLong = config.getfloat('Array Settings','arrayLong')
-
+        
         
         #BEAM SETTINGS
         self.antennasHaveIdenticalBeams = config.getboolean('Array Settings','antennasHaveIdenticalBeams')
@@ -45,10 +46,8 @@ class Specifications:
         self.LSTsFilename = config.get('Input Data Settings','LSTsFilename').replace('[MainDirectory]',self.mainDirectory)
         self.pointings = np.loadtxt(config.get('Input Data Settings','PointingListFilename').replace('[MainDirectory]',self.mainDirectory)).astype(int)
         self.pointingCenters = pickle.load(open(config.get('Input Data Settings','PointingCenterDictionaryFilename').replace('[MainDirectory]',self.mainDirectory),'r'))
-        if self.useOnlyUniqueBaselines:
-            self.noisePerUniqueBaseline = np.load(config.get('Input Data Settings','noisePerUniqueBaselineFilename').replace('[MainDirectory]',self.mainDirectory))
-        else:
-            self.noisePerAntenna = np.load(config.get('Input Data Settings','noisePerAntennaFilename').replace('[MainDirectory]',self.mainDirectory))
+        self.noisePerAntennaPath = config.get('Input Data Settings','noisePerAntennaPath').replace('[MainDirectory]',self.mainDirectory)
+        self.noisePerAntenna = np.load(self.noisePerAntennaPath.replace('[freq]',"{:.3f}".format(self.freq))) #[LST index, antenna index]
 
         #POINT SOURCE CATALOG SETTINGS
         self.pointSourceCatalogFilename = config.get('Input Data Settings','pointSourceCatalogFilename').replace('[MainDirectory]',self.mainDirectory)
@@ -96,3 +95,4 @@ class Specifications:
         self.mapPixels = 12 * self.mapNSIDE**2
         self.facetDecinRad = self.facetDec * math.pi/180.0
         self.facetRAinRad = self.facetRA * math.pi/180.0
+        self.noisePerAntenna = np.load(self.noisePerAntennaPath.replace('[freq]',"{:.3f}".format(self.freq))) #[LST index, antenna index]

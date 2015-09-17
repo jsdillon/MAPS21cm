@@ -8,9 +8,16 @@ import Geometry
 import cPickle as pickle
 import os
 
+def computeNoisePerUniqueBaseline(s):
+    s.noisePerUniqueBaseline = np.zeros((len(s.noisePerAntenna),len(s.baselines)))
+    for antennaPair in s.antennaPairDict.keys():
+        s.noisePerUniqueBaseline[:,s.antennaPairDict[antennaPair]] += 1.0 / (s.noisePerAntenna[:,antennaPair[0]] * s.noisePerAntenna[:,antennaPair[1]])**2
+    s.noisePerUniqueBaseline = 1.0 / s.noisePerUniqueBaseline ** .5
+
 def inverseCovarianceWeightVisibilities(s,visibilities):
     """This function weights the visibilities (which have not been combined into snapshots yet) by the inverse of the noise variance."""
     if s.useOnlyUniqueBaselines:
+        computeNoisePerUniqueBaseline(s)
         visibilities /= (s.noisePerUniqueBaseline**2)
     else:
         print "WARNING: this has not been tested."        
@@ -62,3 +69,17 @@ def saveAllResults(s,coords,times,ps,Dmatrix,PSF,coaddedMap,pointSourcePSF,mapNo
     if s.PSFforPointSources and ps.nSources > 0:
         np.save(s.resultsFolder + "pointSourcePSF",pointSourcePSF)
 
+def loadAllResults(resultsFolder):
+    s = pickle.load(open(resultsFolder + "specifications.p","rb"))
+    coords = pickle.load(open(s.resultsFolder + "coordinates.p","rb"))
+    times = pickle.load( open(s.resultsFolder + "times.p","rb"))
+    ps = pickle.load(open(s.resultsFolder + "pointSourceCatalog.p","rb"))
+    Dmatrix = np.load(s.resultsFolder + "Dmatrix.npy")
+    PSF = np.load(s.resultsFolder + "PSF.npy")
+    coaddedMap = np.load(s.resultsFolder + "coaddedMap.npy")
+    mapNoiseCovariance = np.load(s.resultsFolder + "mapNoiseCovariance.npy")
+    if s.PSFforPointSources and ps.nSources>0:
+        pointSourcePSF = np.load(s.resultsFolder + "pointSourcePSF.npy")
+        return s, coords, times, ps, Dmatrix, PSF, coaddedMap, mapNoiseCovariance, pointSourcePSF
+    else:
+        return s, coords, times, ps, Dmatrix, PSF, coaddedMap, mapNoiseCovariance, []
