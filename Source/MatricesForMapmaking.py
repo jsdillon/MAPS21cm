@@ -56,8 +56,7 @@ def calculatePSAmatrix(s,snapshot,ps,PBs):
     
 def saveAllResults(s,coords,times,ps,Dmatrix,PSF,coaddedMap,pointSourcePSF,mapNoiseCovariance):
     """This function saves all the input classes, vectors, and matrices to s.resultsFolder."""
-    os.system("rm -rf " + s.resultsFolder)
-    os.system("mkdir " + s.resultsFolder)
+    print "Now writing results to " + s.resultsFolder
     pickle.dump(s, open(s.resultsFolder + "specifications.p","wb"))
     pickle.dump(coords, open(s.resultsFolder + "coordinates.p","wb"))
     pickle.dump(times, open(s.resultsFolder + "times.p","wb"))

@@ -11,13 +11,16 @@ import scipy.constants as const
 #This class takes the location of the configuration file and loads relevant specs as attributes to the object
 class Specifications:
     def __init__(self,directory,configFilename,freq=150):
-        print "Now loading in specifications..."
         self.freq = freq
         config = ConfigParser.ConfigParser()
         self.mainDirectory = directory
         config.read(directory + configFilename)
+        
+        #PIPELINE SETTINGS
+        self.frequencyRange = map(float, config.get('Pipeline Settings','frequencyRange').split())
 
         #ANTENNA AND INSTRUMENT SETTINGS
+        self.frequencyList = np.loadtxt(config.get('Array Settings','frequencyListFile').replace('[MainDirectory]',self.mainDirectory))
         self.useOnlyUniqueBaselines = config.getboolean('Array Settings','useOnlyUniqueBaselines')
         self.antennaPositions = np.loadtxt(config.get('Array Settings','antennaPositionsFile').replace('[MainDirectory]',self.mainDirectory))
         if self.useOnlyUniqueBaselines:
@@ -74,11 +77,12 @@ class Specifications:
         self.PSFforPointSources = config.getboolean('Mapmaking Specifications','PSFforPointSources')
         
         #OUTPUT SETTINGS
+        self.resultsFolderFormat = config.get('Mapmaking Specifications','resultsFolder').replace('[MainDirectory]',self.mainDirectory)    
         self.resultsFolder = config.get('Mapmaking Specifications','resultsFolder').replace('[MainDirectory]',self.mainDirectory) + "{:.3f}".format(self.freq) + "/"        
         
         self.CalculateBasicParameters()
     
-    def OverrideMapmakingVariables(self,kwargs):
+    def OverrideSpecifications(self,kwargs):
         for key in kwargs.keys():        
             if getattr(self,key,None) is not None:        
                 print "Overriding " + key + " and setting it to " + str(kwargs[key])
@@ -96,3 +100,7 @@ class Specifications:
         self.facetDecinRad = self.facetDec * math.pi/180.0
         self.facetRAinRad = self.facetRA * math.pi/180.0
         self.noisePerAntenna = np.load(self.noisePerAntennaPath.replace('[freq]',"{:.3f}".format(self.freq))) #[LST index, antenna index]
+        
+        
+if __name__ == "__main__":
+    Specifications("../","configuration.txt")

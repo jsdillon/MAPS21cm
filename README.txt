@@ -26,3 +26,4 @@ Possible Improvements:
 -TODO: Check if primary beam is input correctly into healpix in terms of EW/NS orientation
 
 
+TODO: FIX THE BUG WHERE DIFFERENT PRIMARY BEAMS MEAN THAT DIFFERENT POINT SOURCES GET PICKED OUT FOR EXPLICIT MODELING
