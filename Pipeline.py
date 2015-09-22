@@ -1,6 +1,6 @@
 import os
 from Mapmaker import Mapmaker
-from PowerSpectrumEstimator import PowerSpectrumEstimator
+from BruteForcePowerSpectrumEstimator import BruteForcePowerSpectrumEstimator
 from Source.Specifications import Specifications
 import multiprocessing as mp
 

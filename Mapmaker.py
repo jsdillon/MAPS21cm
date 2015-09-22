@@ -36,7 +36,7 @@ def Mapmaker(freq = 150, useLogFile = False, configFile = "configuration.txt", *
     times.CutOutUnusedLSTsAndGroupIntoSnapshots(s)
     coords = Geometry.Coordinates(s)
     PBs = PrimaryBeams(s)
-    ps = PointSourceCatalog(s,PBs,times)
+    ps = PointSourceCatalog(s,times)
     
     #Simulate or load visibilities
     if s.simulateVisibilitiesWithGSM or s.simulateVisibilitiesWithPointSources:
@@ -76,7 +76,7 @@ def Mapmaker(freq = 150, useLogFile = False, configFile = "configuration.txt", *
     if s.PSFforPointSources and ps.nSources > 0:
         pointSourcePSF = np.dot(Dmatrix,pointSourcePSF)
     
-    MapMats.saveAllResults(s,coords,times,ps,Dmatrix,PSF,coaddedMap,pointSourcePSF,mapNoiseCovariance)
+    MapMats.saveAllResults(s,times,ps,Dmatrix,PSF,coaddedMap,pointSourcePSF)
     sys.stdout = sys.__stdout__    
     return s.resultsFolder
     

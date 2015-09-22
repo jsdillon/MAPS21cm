@@ -31,8 +31,8 @@ class GlobalSkyModel:
     def __init__(self,freq,GSMlocation,GSMNSIDE):
         self.freq = freq
         self.NSIDE = GSMNSIDE        
-        GSMComponents = np.asarray([hp.read_map(GSMlocation + "gsm" + str(i+1) + ".fits" + str(GSMNSIDE),verbose=False) for i in range(3)])
+        GSMComponentsDegraded = np.asarray([np.load(GSMlocation + "component_maps_408locked_NSIDE-" + str(GSMNSIDE) + "_Comp-" + str(comp) + ".npy") for comp in range(3)])
         components = np.loadtxt(GSMlocation + "components.dat")
-        temperature = 10**(interp1d(np.log10(components[:,0]), np.log10(components[:,1]), kind='cubic')(np.log10(freq))) #cubic spline interpolation in log(T)
-        weights = np.asarray([interp1d(components[:,0], components[:,i+2], kind='cubic')(freq) for i in range(3)]) #cubic spline interpolation for weights
-        self.hpMap = temperature*np.dot(weights,GSMComponents)
+        temperature = np.exp(interp1d(np.log(components[:,0]), np.log(components[:,1]), kind='cubic')(np.log(freq))) #cubic spline interpolation in log(f), log(T)
+        weights = np.asarray([interp1d(np.log(components[:,0]), components[:,i+2], kind='cubic')(np.log(freq)) for i in range(3)]) #cubic spline interpolation for log(f), weights
+        self.hpMap = temperature*np.dot(weights,GSMComponentsDegraded)

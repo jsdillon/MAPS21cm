@@ -30,9 +30,10 @@ def plotFacet(s,coords,facetMap,plotTitle):
 def TestGSMOnly():
     print "\nNow running PSF/Mapmaking Comparison GSM Only..."
     resultsDirectory = Mapmaker(PSFextensionBeyondFacetFactor = 2, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = False)
-    s, coords, times, ps, Dmatrix, PSF, coaddedMap, mapNoiseCovariance, pointSourcePSF = MapMats.loadAllResults(resultsDirectory)
+    s, times, ps, Dmatrix, PSF, coaddedMap, mapNoiseCovariance, pointSourcePSF = MapMats.loadAllResults(resultsDirectory)
     s.GSMNSIDE = s.mapNSIDE
     coordsGSM = Geometry.Coordinates(s,True)
+    coords = Geometry.Coordinates(s)
     GSM = GlobalSkyModel(s.freq, s.GSMlocation, s.GSMNSIDE)
     interpoltedGSMRotated = hp.get_interp_val(GSM.hpMap,-coordsGSM.galCoords.b.radian+np.pi/2, np.asarray(coordsGSM.galCoords.l.radian))
     convolvedGSM = np.dot(PSF,interpoltedGSMRotated[coords.extendedIndices])
@@ -45,7 +46,7 @@ def TestGSMOnly():
 def TestPointSourcesOnly():
     print "\nNow running PSF/Mapmaking Comparison Point Sources Only..."
     resultsDirectory = Mapmaker(simulateVisibilitiesWithGSM = False, simulateVisibilitiesWithPointSources = True)
-    s, coords, times, ps, Dmatrix, PSF, coaddedMap, mapNoiseCovariance, pointSourcePSF = MapMats.loadAllResults(resultsDirectory)
+    s, times, ps, Dmatrix, PSF, coaddedMap, pointSourcePSF = MapMats.loadAllResults(resultsDirectory)
     convolvedPointSources = np.dot(pointSourcePSF, ps.scaledFluxes)
     #plotFacet(s,coords,convolvedPointSources,"Convolved Sources")
     #plotFacet(s,coords,coaddedMap,"Coadded Map")
@@ -58,10 +59,11 @@ def TestErrorVsPSFext():
     PSFextFactors = np.arange(1,2.6,.1)
     for extFactor in PSFextFactors:
         resultsDirectory = Mapmaker(PSFextensionBeyondFacetFactor = extFactor, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = True)
-        s, coords, times, ps, Dmatrix, PSF, coaddedMap, mapNoiseCovariance, pointSourcePSF = MapMats.loadAllResults(resultsDirectory)
+        s, times, ps, Dmatrix, PSF, coaddedMap, pointSourcePSF = MapMats.loadAllResults(resultsDirectory)
         convolvedPointSources = np.dot(pointSourcePSF, ps.scaledFluxes)
         s.GSMNSIDE = s.mapNSIDE
         coordsGSM = Geometry.Coordinates(s,True)
+        coords = Geometry.Coordinates(s)        
         GSM = GlobalSkyModel(s.freq, s.GSMlocation, s.GSMNSIDE)
         interpoltedGSMRotated = hp.get_interp_val(GSM.hpMap,-coordsGSM.galCoords.b.radian+np.pi/2, np.asarray(coordsGSM.galCoords.l.radian))
         convolvedGSM = np.dot(PSF,interpoltedGSMRotated[coords.extendedIndices])
@@ -74,14 +76,16 @@ def TestErrorVsPSFext():
 #Test 4: Error as a function of integrationsPerSnapshot
 def TestErrorVsIntegrations():
     resultsDirectory = Mapmaker(PSFextensionBeyondFacetFactor = 3, integrationsPerSnapshot = 1, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = True, MaximumAllowedAngleFromFacetCenterToPointingCenter = 4.33, GSMNSIDE = 32, mapNSIDE = 32, facetRA = .01)
-    s, coords, times, ps, Dmatrix, PSF, coaddedMap, mapNoiseCovariance, pointSourcePSF = MapMats.loadAllResults(resultsDirectory)
+    s, times, ps, Dmatrix, PSF, coaddedMap, pointSourcePSF = MapMats.loadAllResults(resultsDirectory)
+    coords = Geometry.Coordinates(s)    
     #plotFacet(s,coords,coaddedMap,'Coadded Map with 1 Integration per Snapshot')    
     trueMap = np.copy(coaddedMap)
     intErrors = []
     integrationsList = np.asarray([3, 9, 27, 81, 243])
     for integrations in integrationsList:
         resultsDirectory = Mapmaker(PSFextensionBeyondFacetFactor = 3, integrationsPerSnapshot = integrations, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = True, MaximumAllowedAngleFromFacetCenterToPointingCenter = 4.33, GSMNSIDE = 32, mapNSIDE = 32, facetRA = .01)
-        s, coords, times, ps, Dmatrix, PSF, coaddedMap, mapNoiseCovariance, pointSourcePSF = MapMats.loadAllResults(resultsDirectory)
+        s, times, ps, Dmatrix, PSF, coaddedMap, pointSourcePSF = MapMats.loadAllResults(resultsDirectory)
+        coords = Geometry.Coordinates(s)        
         #plotFacet(s,coords,coaddedMap,'Coadded Map with ' + str(integrations) + ' Integrations per Snapshot')
         intErrors.append(np.linalg.norm(coaddedMap - trueMap)/np.linalg.norm(trueMap))
     plt.figure()    

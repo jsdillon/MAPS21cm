@@ -64,17 +64,18 @@ GSMNSIDE: 32
 #########################################################################################################
 
 #FACET SETTINGS
-facetRA: 0.01
+facetRA: 60
 #60
 #50.6737
 #266.2417
 facetDec: -30.706267
-facetSize: 15
+facetSize: 10
+SquareFacetInRADec: True
 MaximumAllowedAngleFromFacetCenterToPointingCenter: .3
 
 #MAPMAKING AND PSF SETTINGS
-mapNSIDE: 32
-PSFextensionBeyondFacetFactor = 1.5
+mapNSIDE: 64
+PSFextensionBeyondFacetFactor = 2
 integrationsPerSnapshot = 1
 PSFforPointSources = true
 

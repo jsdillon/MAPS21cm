@@ -7,8 +7,12 @@ import healpy as hp
 #When constructed, this class loads in information about the primary beams, using a specifications object
 class PrimaryBeams:
 
-    def __init__(self,s):
-        print "Now loading in information about the primary beams..."
+    def __init__(self,s,freq = None):
+        if freq is not None:
+            self.freq = freq
+        else:
+            print "Now loading in information about the primary beams..."
+            self.freq = s.freq
         if not s.antennasHaveIdenticalBeams:
             print "\nWARNING: ALL PRIMARY BEAMS BEING LOADED AS IDENTICAL TO ANTENNA 0\n"
         self.allBeams = {}
@@ -19,10 +23,10 @@ class PrimaryBeams:
                     for pointIndex in range(s.nPointings):
                         #find two closest values
                         allFrequencies = np.asarray(map(float,s.beamFreqList))
-                        freq1Index = np.abs(allFrequencies - s.freq).argmin()
+                        freq1Index = np.abs(allFrequencies - self.freq).argmin()
                         freq1 = allFrequencies[freq1Index]
                         allFrequencies[freq1Index] = 1e10
-                        freq2Index = np.abs(allFrequencies - s.freq).argmin()
+                        freq2Index = np.abs(allFrequencies - self.freq).argmin()
                         freq2 = allFrequencies[freq2Index]
                         
                         filename = s.beamFileFormat.replace('[antIndex]',str(0)).replace('[antPol]',antPol).replace('[skyPol]',skyPol).replace('[pointIndex]',str(pointIndex))
@@ -31,7 +35,7 @@ class PrimaryBeams:
                         beam1 = np.load(filename.replace('[freq]',"{:1.6f}".format(float(s.beamFreqList[freq1Index]))));
                         beam2 = np.load(filename.replace('[freq]',"{:1.6f}".format(float(s.beamFreqList[freq2Index]))));
                         #linear interpolation
-                        self.allBeams[key] = beam1 * (1 - (s.freq - freq1)/(freq2 - freq1)) + beam2 * ((s.freq - freq1)/(freq2 - freq1))
+                        self.allBeams[key] = beam1 * (1 - (self.freq - freq1)/(freq2 - freq1)) + beam2 * ((self.freq - freq1)/(freq2 - freq1))
         
         #Beam products useful for Stokes I
         for antPol in s.antPolList:

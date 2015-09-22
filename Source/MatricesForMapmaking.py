@@ -54,31 +54,27 @@ def calculatePSAmatrix(s,snapshot,ps,PBs):
     pointSourceAmatrix = np.dot(np.exp(-1j * s.k * s.baselines.dot(np.transpose(psCartVecs))), np.diag(realSpaceDiagonalPart))
     return pointSourceAmatrix
     
-def saveAllResults(s,coords,times,ps,Dmatrix,PSF,coaddedMap,pointSourcePSF,mapNoiseCovariance):
+def saveAllResults(s,times,ps,Dmatrix,PSF,coaddedMap,pointSourcePSF):
     """This function saves all the input classes, vectors, and matrices to s.resultsFolder."""
     print "Now writing results to " + s.resultsFolder
     pickle.dump(s, open(s.resultsFolder + "specifications.p","wb"))
-    pickle.dump(coords, open(s.resultsFolder + "coordinates.p","wb"))
     pickle.dump(times, open(s.resultsFolder + "times.p","wb"))
     pickle.dump(ps, open(s.resultsFolder + "pointSourceCatalog.p","wb"))
     np.save(s.resultsFolder + "Dmatrix",Dmatrix)
     np.save(s.resultsFolder + "PSF",PSF)
     np.save(s.resultsFolder + "coaddedMap",coaddedMap)
-    np.save(s.resultsFolder + "mapNoiseCovariance",mapNoiseCovariance)
     if s.PSFforPointSources and ps.nSources > 0:
         np.save(s.resultsFolder + "pointSourcePSF",pointSourcePSF)
 
 def loadAllResults(resultsFolder):
     s = pickle.load(open(resultsFolder + "specifications.p","rb"))
-    coords = pickle.load(open(s.resultsFolder + "coordinates.p","rb"))
     times = pickle.load( open(s.resultsFolder + "times.p","rb"))
     ps = pickle.load(open(s.resultsFolder + "pointSourceCatalog.p","rb"))
     Dmatrix = np.load(s.resultsFolder + "Dmatrix.npy")
     PSF = np.load(s.resultsFolder + "PSF.npy")
     coaddedMap = np.load(s.resultsFolder + "coaddedMap.npy")
-    mapNoiseCovariance = np.load(s.resultsFolder + "mapNoiseCovariance.npy")
     if s.PSFforPointSources and ps.nSources>0:
         pointSourcePSF = np.load(s.resultsFolder + "pointSourcePSF.npy")
-        return s, coords, times, ps, Dmatrix, PSF, coaddedMap, mapNoiseCovariance, pointSourcePSF
+        return s, times, ps, Dmatrix, PSF, coaddedMap, pointSourcePSF
     else:
-        return s, coords, times, ps, Dmatrix, PSF, coaddedMap, mapNoiseCovariance, []
+        return s, times, ps, Dmatrix, PSF, coaddedMap, []

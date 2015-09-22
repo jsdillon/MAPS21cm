@@ -68,6 +68,7 @@ class Specifications:
         self.facetRA = config.getfloat('Mapmaking Specifications','facetRA')
         self.facetDec = config.getfloat('Mapmaking Specifications','facetDec')
         self.facetSize = config.getfloat('Mapmaking Specifications','facetSize')
+        self.SquareFacetInRADec = config.getboolean('Mapmaking Specifications','SquareFacetInRADec')
         self.MaximumAllowedAngleFromFacetCenterToPointingCenter = config.getfloat('Mapmaking Specifications','MaximumAllowedAngleFromFacetCenterToPointingCenter')
         
         #MAPMAKING AND PSF SETTINGS        
