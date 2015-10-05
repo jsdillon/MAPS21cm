@@ -9,7 +9,7 @@ import cPickle as pickle
 
 #HARD CODED SETTINGS
 Separation = 14.6
-hexNum = 3
+hexNum = 4
 precisionFactor = 1000000
 
 positions = [];

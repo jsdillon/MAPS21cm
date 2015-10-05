@@ -12,13 +12,13 @@ from GlobalSkyModel import GlobalSkyModel
 
 def VisibilitySimulator(s,PBs,ps,times,coords):
     print "Now simulating visibilities (assuming XX beams only)..."
+    if s.GSMNSIDE < s.mapNSIDE:
+        s.GSMNSIDE = s.mapNSIDE
     coordsGSM = Geometry.Coordinates(s,True)
     visibilities = np.zeros([len(times.LSTs),len(s.baselines)],dtype=complex)
     
     #TODO: this ignores polarization and differing primary beams
     if s.simulateVisibilitiesWithGSM:
-        if s.GSMNSIDE < s.mapNSIDE:
-            s.GSMNSIDE = s.mapNSIDE
         GSM = GlobalSkyModel(s.freq, s.GSMlocation, s.GSMNSIDE)
         interpoltedGSMRotated = hp.get_interp_val(GSM.hpMap,-coordsGSM.galCoords.b.radian+np.pi/2, np.asarray(coordsGSM.galCoords.l.radian))        
         

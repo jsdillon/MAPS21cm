@@ -9,7 +9,7 @@ import ConfigParser
 import cPickle as pickle
 
 #HARD CODED SETTINGS
-integrationTime = 10 #seconds
+integrationTime = 240 #seconds
 singleBaselineVisibilityNoiseAt150MHz = 1.0 #Jy
 noiseFrequencyDependenceExponent = -2.55
 

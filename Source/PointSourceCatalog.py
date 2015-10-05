@@ -6,7 +6,7 @@ import healpy as hp
 import math
 import Geometry
 import time
-from Source.PrimaryBeams import PrimaryBeams
+from PrimaryBeams import PrimaryBeams
 
 class PointSourceCatalog:
     def __init__(self,s,times):

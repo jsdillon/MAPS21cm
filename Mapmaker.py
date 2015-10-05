@@ -11,21 +11,24 @@ from Source.VisibilitySimulator import VisibilitySimulator
 from Source import Geometry
 from Source.PointSourceCatalog import PointSourceCatalog
 from Source import MatricesForMapmaking as MapMats
+from Source.LoadVisibilities import LoadVisibilities
 import scipy.constants as const
 
 from Source.GlobalSkyModel import GlobalSkyModel
 plt.close('all')
 
 
-def Mapmaker(freq = 150, useLogFile = False, configFile = "configuration.txt", **kwargs):
+def Mapmaker(freq = 150, useLogFile = False, configFile = "configuration.txt", mainDirectory = None, **kwargs):
     """This function makes maps from visibilities and also calculates the associated map statistics. 
     
     Saves the results to binary (as pickles or numpy arryas) and returns the folder where they are located"""    
     
     #Load in everything we need, figure out which LSTs to work with
     print "Now working on mapmaking at " + str(freq) + " MHz..."             
-    scriptDirectory = os.path.dirname(os.path.abspath(__file__))
-    s = Specifications(scriptDirectory, "/" + configFile,freq)
+    if mainDirectory == None:
+        mainDirectory = os.path.dirname(os.path.abspath(__file__))    
+    print "Now loading settings from " + mainDirectory + "/" + configFile
+    s = Specifications(mainDirectory, configFile, freq)
     s.OverrideSpecifications(kwargs)
     os.system("rm -rf " + s.resultsFolder)
     os.system("mkdir " + s.resultsFolder)
@@ -42,8 +45,7 @@ def Mapmaker(freq = 150, useLogFile = False, configFile = "configuration.txt", *
     if s.simulateVisibilitiesWithGSM or s.simulateVisibilitiesWithPointSources:
         visibilities = VisibilitySimulator(s,PBs,ps,times,coords)
     else:
-        print "Visibility loading functions are not done."    
-        #visibilties = LoadVisibilities(s)
+        visibilities = LoadVisibilities(s,times)
     visibilities *= s.convertJyToKFactor
     
     #Prepare visibilities
@@ -77,7 +79,8 @@ def Mapmaker(freq = 150, useLogFile = False, configFile = "configuration.txt", *
         pointSourcePSF = np.dot(Dmatrix,pointSourcePSF)
     
     MapMats.saveAllResults(s,times,ps,Dmatrix,PSF,coaddedMap,pointSourcePSF)
-    sys.stdout = sys.__stdout__    
+    if useLogFile:    
+        sys.stdout = sys.__stdout__    
     return s.resultsFolder
     
     

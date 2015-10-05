@@ -14,7 +14,7 @@ class Specifications:
         self.freq = freq
         config = ConfigParser.ConfigParser()
         self.mainDirectory = directory
-        config.read(directory + configFilename)
+        config.read(directory + "/" + configFilename)
         
         #PIPELINE SETTINGS
         self.frequencyRange = map(float, config.get('Pipeline Settings','frequencyRange').split())
@@ -95,6 +95,7 @@ class Specifications:
         self.k = 2*np.pi * self.freq*1e6 / const.c        
         self.arrayLatInRad = self.arrayLat * math.pi/180.0;         
         self.nAntennas = len(self.antennaPositions)
+        self.nBaselines = len(self.baselines)
         self.nPointings = len(self.pointingCenters)
         self.convertJyToKFactor = (const.c)**2 / (2 * const.k * (self.freq*1e6)**2 * 1e26) #multiply by this number to convert Jy to K
         self.mapPixels = 12 * self.mapNSIDE**2
