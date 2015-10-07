@@ -152,12 +152,12 @@ fig, ax = plt.subplots()
 cax = ax.pcolorfast(np.arange(365)*12.0/365.0, np.arange(60*24)/60.0,np.transpose(powers),vmin = 0)
 #, aspect='auto', interpolation = 'none', origin = 'lower',vmin = 0)
 plt.xlabel('Months since January 1, 2016')
-plt.ylabel('Time UTC (hours)')
+plt.ylabel('UTC Time (hours)')
 sunset, = plt.plot(np.arange(365)*12.0/365.0, sunsets,'r-',label='Sunset',lw=3)    
 midnight, = plt.plot(np.arange(365)*12.0/365.0, midnights,'y-',label='Midnight',lw=3)    
 sunrise, = plt.plot(np.arange(365)*12.0/365.0, sunrises,'g-',label='Sunrise',lw=3)    
 cbar = fig.colorbar(cax)
-cbar.set_label('Sum of Beam-Weighted GSM in (K) / Sum of Beam')
+cbar.set_label('Sum of Beam-Weighted GSM / Sum of Beam (Kelvin)')
 ax.legend(handles=[sunset, midnight, sunrise])
 ax.set_ylim([0, 24])
 box = ax.get_position()
@@ -170,5 +170,27 @@ ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), fancybox=True, shadow
 plt.title('Observing Season for 10$^\circ$ FWHM Gaussian Beam')
 plt.savefig('observing_seasons.pdf',format='pdf')
 
+#%%
 
+fig, ax = plt.subplots()
+cax = ax.plot(np.arange(60*24)/60.0, powers[360,:])
+plt.ylabel('Sum of Beam-Weighted GSM / Sum of Beam (Kelvin)')
+plt.xlabel('UTC Time (hours)')
+plt.title('Example Mid-Observing Season Day: December 1st')
+ax.set_xlim([0, 24])
+ax.plot([sunrises[360], sunrises[360]], [0, 3500])
+ax.plot([sunsets[360], sunsets[360]], [0, 3500])
+plt.text(sunrises[360] + .2, 3200, 'Sunrise',fontsize=16)
+plt.text(sunsets[360] + .2, 3200, 'Sunset',fontsize=16)
+plt.grid(b=True, which='major', linestyle='--')
+plt.savefig('sample_day.pdf',format='pdf')
 
+for hour in range(24):
+    print int(np.round(powers[360,60*hour]))
+    
+    #%%
+    
+np.save("Tsky",powers)
+np.save("Sunrises",sunrises)
+np.save("Sunsets",sunsets)
+np.save("Midnights",midnights)

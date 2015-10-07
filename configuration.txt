@@ -71,10 +71,10 @@ facetRA: 180
 facetDec: -30.706267
 facetSize: 10
 SquareFacetInRADec: True
-MaximumAllowedAngleFromFacetCenterToPointingCenter: 500
+MaximumAllowedAngleFromFacetCenterToPointingCenter: .1
 
 #MAPMAKING AND PSF SETTINGS
-mapNSIDE: 64
+mapNSIDE: 32
 PSFextensionBeyondFacetFactor = 2
 integrationsPerSnapshot = 1
 PSFforPointSources = true
