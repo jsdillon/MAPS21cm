@@ -1,6 +1,6 @@
 import os
 from Mapmaker import Mapmaker
-from BruteForcePowerSpectrumEstimator import BruteForcePowerSpectrumEstimator
+#from BruteForcePowerSpectrumEstimator import BruteForcePowerSpectrumEstimator
 from Source.Specifications import Specifications
 import multiprocessing as mp
 
@@ -18,7 +18,7 @@ def MakeMapsAtAllFrequencies(configFile = "configuration.txt"):
 
 def RunPipeline():
     MakeMapsAtAllFrequencies()
-    PowerSpectrumEstimator()
+#    PowerSpectrumEstimator()
 
 if __name__ == "__main__":    
     RunPipeline()    

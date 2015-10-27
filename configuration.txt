@@ -4,7 +4,7 @@
 #########################################################################################################
 [Pipeline Settings]
 #########################################################################################################
-frequencyRange = 150 155
+frequencyRange = 150 151
 
 
 
@@ -54,10 +54,10 @@ pointSourceBeamWeightedFluxLimitAtReferenceFreq: 1
 #   in Jy
 
 #VISIBILITY SIMULATION SETTINGS
-simulateVisibilitiesWithGSM: true
+simulateVisibilitiesWithGSM: false
 simulateVisibilitiesWithPointSources: false
 GSMlocation: [MainDirectory]/ObservationData/GSM/
-GSMNSIDE: 64
+GSMNSIDE: 128
 
 #########################################################################################################
 [Mapmaking Specifications]
@@ -69,12 +69,12 @@ facetRA: 180
 #50.6737
 #266.2417
 facetDec: -30.706267
-facetSize: 10
+facetSize: 2
 SquareFacetInRADec: True
 MaximumAllowedAngleFromFacetCenterToPointingCenter: .1
 
 #MAPMAKING AND PSF SETTINGS
-mapNSIDE: 32
+mapNSIDE: 128
 PSFextensionBeyondFacetFactor = 2
 integrationsPerSnapshot = 1
 PSFforPointSources = true

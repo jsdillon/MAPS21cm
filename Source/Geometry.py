@@ -50,18 +50,19 @@ class Coordinates:
         self.extendedIndexOfFacetCenter = np.dot(self.extendedIndices ==  hp.ang2pix(self.NSIDE,np.pi/2,0.0),np.arange(len(self.extendedIndices)))
         
     def computeCubeCoordinates(self,s,freqs):
-        """ Given a range of frequencies, this function calculates the coordinates of each voxel in cMpc as a function of [freq,pixelIndex] using the flat sky approxmiation"""
-        self.comovingDistancesToEachChannel = cosmo.comoving_distance(1420.40575177 / freqs - 1).value
-        self.comovingTransverseDistancesForEachChannel = cosmo.comoving_distance(1420.40575177 / freqs - 1).value
-        self.zCoords = np.outer(self.comovingDistancesToEachChannel,np.ones(self.nFacetPixels)) #distance from the earth
-        self.xCoords = np.outer(self.comovingTransverseDistancesForEachChannel,hp.pix2vec(self.NSIDE, self.mapIndices)[1]) #distance from the facet center, roughly the same direction as RA
-        self.yCoords = np.outer(self.comovingTransverseDistancesForEachChannel,hp.pix2vec(self.NSIDE, self.mapIndices)[2]) #distance from the facet center, roughly the same direction as Dec
-#        self.cubeCoordinates = np.zeros((,),dtype=('f8,f8,f8'))        
-#        print cosmo.comoving_distance(4)
-#        a = ([0] * 10) * 10
-#        print len(a)
-#        print len(a[0])
-                        
+        """ Given a range of frequencies, this function calculates the coordinates of each voxel in cMpc as a function of [freq,pixelIndex] and other useful quantities."""
+        self.freqs = freqs       
+        self.nFreqs = len(freqs)
+        self.nVoxels = self.nFacetPixels * self.nFreqs
+        self.comovingDistances = cosmo.comoving_distance(1420.40575177 / freqs - 1).value
+        self.comovingTransverseDistances = cosmo.comoving_distance(1420.40575177 / freqs - 1).value
+        self.losCoords = np.outer(self.comovingDistances,np.ones(self.nFacetPixels)) #distance from the earth
+        self.xCoords = np.outer(self.comovingTransverseDistances,hp.pix2vec(self.NSIDE, self.mapIndices)[1]) #distance from the facet center, roughly the same direction as RA
+        self.yCoords = np.outer(self.comovingTransverseDistances,hp.pix2vec(self.NSIDE, self.mapIndices)[2]) #distance from the facet center, roughly the same direction as Dec
+        self.losDelta = np.abs(np.mean(np.diff(self.comovingDistances)))
+        self.cubeCoordinates = np.zeros((len(freqs),self.nFacetPixels), dtype=('f8,f8,f8'))
+
+
 # Convert RAs and Decs in radians to altitudes and azimuths in radians, given an LST and array location in the specs object
 def convertEquatorialToHorizontal(s,RAs,decs,LST):
     """ Convert RAs and Decs in radians to altitudes and azimuths in radians, given an LST and array location in the specs object """

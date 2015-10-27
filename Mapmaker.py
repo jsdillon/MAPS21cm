@@ -74,7 +74,7 @@ def Mapmaker(freq = 150, useLogFile = False, configFile = "configuration.txt", m
     Dmatrix = np.diag(np.ones((coords.nFacetPixels)) / PSF[coords.mapIndexOfFacetCenter,coords.extendedIndexOfFacetCenter])
     PSF = np.dot(Dmatrix,PSF)
     coaddedMap = np.dot(Dmatrix,coaddedMap)
-    mapNoiseCovariance = np.dot(PSF[:,coords.mapIndexLocationsInExtendedIndexList],np.transpose(Dmatrix))
+    #mapNoiseCovariance = np.dot(PSF[:,coords.mapIndexLocationsInExtendedIndexList],np.transpose(Dmatrix))
     if s.PSFforPointSources and ps.nSources > 0:
         pointSourcePSF = np.dot(Dmatrix,pointSourcePSF)
     
