@@ -54,8 +54,8 @@ def computeFourierBinEdges(coords):
     paraLength = np.max(coords.losCoords) - np.min(coords.losCoords)
     deltaKPara = 2*np.pi / paraLength
     deltaKPerp = 2*np.pi / perpLength
-    kParaBinEdges = [(deltaKPara*n, deltaKPara*(n+1)) for n in range(int(np.ceil(len(coords.freqs)/2.0)+5))]
-    kPerpBinEdges = [(deltaKPerp*n, deltaKPerp*(n+1)) for n in range(int(np.ceil(coords.nFacetPixels**.5 / 2)+6))]
+    kParaBinEdges = [(deltaKPara*n, deltaKPara*(n+1)) for n in range(int(np.ceil(len(coords.freqs)/2.0)))]
+    kPerpBinEdges = [(deltaKPerp*n, deltaKPerp*(n+1)) for n in range(int(np.ceil(coords.nFacetPixels**.5 / 2)))]
     return kParaBinEdges, kPerpBinEdges 
 
 def calculateQMatrices(coords, kParaBinEdges, kPerpBinEdges):
@@ -69,17 +69,18 @@ def calculateQMatrices(coords, kParaBinEdges, kPerpBinEdges):
             for jLos in range(coords.nFreqs):
                 for jPix in range(coords.nFacetPixels):
                     j = jLos*coords.nFacetPixels + jPix
-                    rPara[i,j] = np.abs(coords.losCoords[iLos,iPix] - coords.losCoords[jLos,jPix])
+                    rPara[i,j] = (coords.losCoords[iLos,iPix] - coords.losCoords[jLos,jPix])
                     rPerp[i,j] = ((coords.xCoords[iLos,iPix] - coords.xCoords[jLos,jPix])**2 + (coords.yCoords[iLos,iPix] - coords.yCoords[jLos,jPix])**2)**.5
-    
+
     for kParaBin in range(len(kParaBinEdges)):    
         for kPerpBin in range(len(kPerpBinEdges)):
-            paraTerm = (2*np.pi**2)**-1 * rPara**-1 * np.sin(kParaBinEdges[kParaBin][1] * rPara) - np.sin(kParaBinEdges[kParaBin][0] * rPara)
+            paraTerm = (2*np.pi**2)**-1 * rPara**-1 * (np.sin(kParaBinEdges[kParaBin][1] * rPara) - np.sin(kParaBinEdges[kParaBin][0] * rPara))
             paraTerm[rPara == 0] = (2*np.pi**2)**-1 * (kParaBinEdges[kParaBin][1] - kParaBinEdges[kParaBin][0])            
             perpTerm = rPerp**-2 * (kPerpBinEdges[kPerpBin][1] * rPerp * jv(1, kPerpBinEdges[kPerpBin][1] * rPerp) - kPerpBinEdges[kPerpBin][0] * rPerp * jv(1, kPerpBinEdges[kPerpBin][0] * rPerp))
             perpTerm[rPerp == 0] = (kPerpBinEdges[kPerpBin][1]**2 - kPerpBinEdges[kPerpBin][0]**2) / 2.0
             QMatrices[kParaBin,kPerpBin] = paraTerm * perpTerm
             #TODO: consider series expansion for very small r
+
     return QMatrices 
 
 
@@ -172,7 +173,6 @@ def pColorKParaKPerp(whatToPlot,kParaBinEdges,kPerpBinEdges,title):
     return fig
 
 
-plt.figure()
 #verticalErrors = np.reshape(np.transpose(np.diag(np.linalg.inv(Fisher))),(len(kPerpBinEdges),len(kParaBinEdges)))
 FisherDiag = np.reshape(np.diag(Fisher),(len(kParaBinEdges),len(kPerpBinEdges)))
 fig = pColorKParaKPerp(FisherDiag,kParaBinEdges,kPerpBinEdges,'Fisher Diagonal')
