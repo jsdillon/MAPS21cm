@@ -3,6 +3,12 @@
 
 import numpy as np
 import healpy as hp
+from astropy.io import fits
+
+# For James's HEALPIX Beams
+#hdulist = fits.open('HERA_DISH_paper_feed_cyl36_150mhz_X_healpix.fits')
+#hp.mollview(np.log10(hdulist[1].data.field(0).flatten()),title='Log_10[HERA_DISH_paper_feed_cyl36_150mhz_X_healpix.fits]')
+
 
 #When constructed, this class loads in information about the primary beams, using a specifications object
 class PrimaryBeams:
@@ -32,9 +38,23 @@ class PrimaryBeams:
                         filename = s.beamFileFormat.replace('[antIndex]',str(0)).replace('[antPol]',antPol).replace('[skyPol]',skyPol).replace('[pointIndex]',str(pointIndex))
 #                        filename = s.beamFileFormat.replace('[antIndex]',str(antIndex)).replace('[antPol]',antPol).replace('[skyPol]',skyPol).replace('[pointIndex]',str(pointIndex))
                         key = str(antIndex) + ";" + str(antPol) + ";" + str(skyPol) + ";" + str(pointIndex)
-                        beam1 = np.load(filename.replace('[freq]',"{:1.6f}".format(float(s.beamFreqList[freq1Index]))));
-                        beam2 = np.load(filename.replace('[freq]',"{:1.6f}".format(float(s.beamFreqList[freq2Index]))));
-                        #linear interpolation
+                        if s.FITSbeam:
+                            beam1hdulist = fits.open(filename.replace('[freq]','{0:d}'.format(int(s.beamFreqList[freq1Index]))))
+                            beam1 = beam1hdulist[1].data.field(0).flatten()
+                            beam1hdulist.close()
+                            beam2hdulist = fits.open(filename.replace('[freq]','{0:d}'.format(int(s.beamFreqList[freq2Index]))))
+                            beam2 = beam2hdulist[1].data.field(0).flatten()
+                            beam2hdulist.close()
+                            beam1[hp.pix2ang(s.beamNSIDE,np.arange(len(beam1)))[0]>np.pi/2] = 0 #remove all response below the horizon
+                            beam2[hp.pix2ang(s.beamNSIDE,np.arange(len(beam2)))[0]>np.pi/2] = 0
+                            beam1 = beam1**.5 #this is a proxy of antenna beams
+                            beam2 = beam2**.5
+                            beam1 = beam1 / np.max(beam1)
+                            beam2 = beam2 / np.max(beam2)
+                        else:
+                            beam1 = np.load(filename.replace('[freq]',"{:1.6f}".format(float(s.beamFreqList[freq1Index]))));
+                            beam2 = np.load(filename.replace('[freq]',"{:1.6f}".format(float(s.beamFreqList[freq2Index]))));                                                
+                        #linear interpolation                        
                         self.allBeams[key] = beam1 * (1 - (self.freq - freq1)/(freq2 - freq1)) + beam2 * ((self.freq - freq1)/(freq2 - freq1))
         
         #Beam products useful for Stokes I

@@ -30,16 +30,16 @@ def plotFacet(s,coords,facetMap,plotTitle):
 def TestGSMOnly():
     print "\nNow running PSF/Mapmaking Comparison GSM Only..."
     resultsDirectory = Mapmaker(PSFextensionBeyondFacetFactor = 2, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = False)
-    s, times, ps, Dmatrix, PSF, coaddedMap, mapNoiseCovariance, pointSourcePSF = MapMats.loadAllResults(resultsDirectory)
+    s, times, ps, Dmatrix, PSF, coaddedMap, pointSourcePSF = MapMats.loadAllResults(resultsDirectory)
     s.GSMNSIDE = s.mapNSIDE
     coordsGSM = Geometry.Coordinates(s,True)
     coords = Geometry.Coordinates(s)
     GSM = GlobalSkyModel(s.freq, s.GSMlocation, s.GSMNSIDE)
     interpoltedGSMRotated = hp.get_interp_val(GSM.hpMap,-coordsGSM.galCoords.b.radian+np.pi/2, np.asarray(coordsGSM.galCoords.l.radian))
     convolvedGSM = np.dot(PSF,interpoltedGSMRotated[coords.extendedIndices])
-    #plotFacet(s,coords,convolvedGSM,"Convolved GSM")
-    #plotFacet(s,coords,coaddedMap,"Coadded Map")
-    #plotFacet(s,coords,coaddedMap/convolvedGSM,"Coadded Map / Convolved GSM")
+    plotFacet(s,coords,convolvedGSM,"Convolved GSM")
+    plotFacet(s,coords,coaddedMap,"Coadded Map")
+    plotFacet(s,coords,coaddedMap/convolvedGSM,"Coadded Map / Convolved GSM")
     print "Error = " + str(np.linalg.norm(coaddedMap - convolvedGSM)/np.linalg.norm(convolvedGSM))
 
 #Test 2: Point Sources Only
@@ -98,7 +98,8 @@ def TestErrorVsIntegrations():
 #   VARIOUS TESTS OF THE MAPMAKING ALGORITHM REPRODUCING DILLON ET AL. (2015) RESULTS
 ###############################################################################################################################
 
-#TestGSMOnly()
-#TestPointSourcesOnly()
-TestErrorVsPSFext()
-TestErrorVsIntegrations()
+TestGSMOnly()
+TestPointSourcesOnly()
+#TestErrorVsPSFext()
+#TestErrorVsIntegrations()
+

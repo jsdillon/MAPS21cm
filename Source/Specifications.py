@@ -42,6 +42,7 @@ class Specifications:
         self.antPolList = config.get('Array Settings','antPolList').split()
         self.skyPolList = config.get('Array Settings','skyPolList').split()        
         self.beamFreqList = config.get('Array Settings','beamFreqList').split()
+        self.FITSbeam = config.getboolean('Array Settings', 'FITSbeam')        
         self.beamFileFormat = config.get('Array Settings','beamFileFormat').replace('[MainDirectory]',self.mainDirectory)
         self.beamNSIDE = config.getint('Array Settings','beamNSIDE')    
         

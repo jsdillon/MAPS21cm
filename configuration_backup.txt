@@ -1,9 +1,10 @@
+
 # 			SPECIFICATIONS FOR JOINT MAPMAKING AND POWER SPECTRUM ESTIMATION PIPELINE
 
 #########################################################################################################
 [Pipeline Settings]
 #########################################################################################################
-frequencyRange = 150 155
+frequencyRange = 150 151
 
 
 
@@ -29,6 +30,7 @@ arrayLong: 21.321317
 #BEAM SETTINGS
 antennasHaveIdenticalBeams: true
 #WARNING: For now, setting this to false will break things.
+
 FITSbeam: false
 antPolList: X Y
 skyPolList: x y
@@ -36,6 +38,17 @@ nPointings: 1
 beamFreqList: 100 110 120 130 140 150 160 170 180 190 200
 beamFileFormat: [MainDirectory]/InstrumentData/Beams/beam_[antIndex]_[antPol]_[skyPol]_[pointIndex]_[freq].npy
 beamNSIDE = 64
+
+#FITSbeam: true
+#antPolList: X Y
+#skyPolList: x y
+#nPointings: 1
+#beamFreqList: 100 110 120 130 140 150 160 170 180 190 200
+#beamFileFormat: [MainDirectory]/InstrumentData/Beams/HERA-CST/HERA_DISH_paper_feed_cyl36_[freq]mhz_[antPol]_healpix.fits
+#beamNSIDE = 128
+
+
+
 
 #########################################################################################################
 [Input Data Settings]
@@ -57,7 +70,7 @@ pointSourceBeamWeightedFluxLimitAtReferenceFreq: 1
 simulateVisibilitiesWithGSM: true
 simulateVisibilitiesWithPointSources: false
 GSMlocation: [MainDirectory]/ObservationData/GSM/
-GSMNSIDE: 32
+GSMNSIDE: 128
 
 #########################################################################################################
 [Mapmaking Specifications]
@@ -70,11 +83,11 @@ facetRA: 60
 #266.2417
 facetDec: -30.706267
 facetSize: 10
-SquareFacetInRADec: False
-MaximumAllowedAngleFromFacetCenterToPointingCenter: .3
+SquareFacetInRADec: True
+MaximumAllowedAngleFromFacetCenterToPointingCenter: .1
 
 #MAPMAKING AND PSF SETTINGS
-mapNSIDE: 64
+mapNSIDE: 32
 PSFextensionBeyondFacetFactor = 2
 integrationsPerSnapshot = 1
 PSFforPointSources = true
