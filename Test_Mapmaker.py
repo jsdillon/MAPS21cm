@@ -29,7 +29,7 @@ def plotFacet(s,coords,facetMap,plotTitle):
 #Test 1: GSM Only    
 def TestGSMOnly():
     print "\nNow running PSF/Mapmaking Comparison GSM Only..."
-    resultsDirectory = Mapmaker(PSFextensionBeyondFacetFactor = 2, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = False)
+    resultsDirectory = Mapmaker(PSFextensionBeyondFacetFactor = 3, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = False)
     s, times, ps, Dmatrix, PSF, coaddedMap, pointSourcePSF = MapMats.loadAllResults(resultsDirectory)
     s.GSMNSIDE = s.mapNSIDE
     coordsGSM = Geometry.Coordinates(s,True)
@@ -56,7 +56,7 @@ def TestPointSourcesOnly():
 #Test 3: Error as a function of PSFextensionBeyondFacetFactor
 def TestErrorVsPSFext():    
     PSFErrors = []
-    PSFextFactors = np.arange(1,2.6,.1)
+    PSFextFactors = np.arange(1,8,.5)
     for extFactor in PSFextFactors:
         resultsDirectory = Mapmaker(PSFextensionBeyondFacetFactor = extFactor, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = True)
         s, times, ps, Dmatrix, PSF, coaddedMap, pointSourcePSF = MapMats.loadAllResults(resultsDirectory)
@@ -100,6 +100,6 @@ def TestErrorVsIntegrations():
 
 TestGSMOnly()
 TestPointSourcesOnly()
-#TestErrorVsPSFext()
-#TestErrorVsIntegrations()
+TestErrorVsPSFext()
+TestErrorVsIntegrations()
 

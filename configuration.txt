@@ -57,7 +57,7 @@ pointSourceBeamWeightedFluxLimitAtReferenceFreq: 1
 simulateVisibilitiesWithGSM: true
 simulateVisibilitiesWithPointSources: false
 GSMlocation: [MainDirectory]/ObservationData/GSM/
-GSMNSIDE: 32
+GSMNSIDE: 64
 
 #########################################################################################################
 [Mapmaking Specifications]
@@ -70,7 +70,7 @@ facetRA: 60
 #266.2417
 facetDec: -30.706267
 facetSize: 10
-SquareFacetInRADec: False
+SquareFacetInRADec: True
 MaximumAllowedAngleFromFacetCenterToPointingCenter: .3
 
 #MAPMAKING AND PSF SETTINGS
