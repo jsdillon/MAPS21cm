@@ -7,28 +7,25 @@ import os
 import sys
 import matplotlib
 import matplotlib.pyplot as plt
-from Source.Specifications import Specifications
-from Source.PrimaryBeams import PrimaryBeams
-from Source.VisibilitySimulator import VisibilitySimulator
-from Source import Geometry
-from Source.PointSourceCatalog import PointSourceCatalog
-from Source import MatricesForMapmaking as MapMats
-from Source.LoadVisibilities import LoadVisibilities
+from Specifications import Specifications
+from PrimaryBeams import PrimaryBeams
+from VisibilitySimulator import VisibilitySimulator
+import Geometry
+from PointSourceCatalog import PointSourceCatalog
+import MatricesForMapmaking as MapMats
+from LoadVisibilities import LoadVisibilities
 import scipy.constants as const
-
-from Source.GlobalSkyModel import GlobalSkyModel
+from GlobalSkyModel import GlobalSkyModel
 plt.close('all')
 
 
-def Mapmaker(freq = 150, useLogFile = False, configFile = "configuration.txt", mainDirectory = None, **kwargs):
+def Mapmaker(mainDirectory, freq = 150, useLogFile = False, configFile = "configuration.txt",  **kwargs):
     """This function makes maps from visibilities and also calculates the associated map statistics. 
     
-    Saves the results to binary (as pickles or numpy arryas) and returns the folder where they are located"""    
+    Saves the results to binary (as pickles or numpy arryas) and returns the folder where they are located"""        
     
     #Load in everything we need, figure out which LSTs to work with
     print "Now working on mapmaking at " + str(freq) + " MHz..."             
-    if mainDirectory is None:
-        mainDirectory = os.path.dirname(os.path.abspath(__file__))
     s = Specifications(mainDirectory, configFile,freq)
     s.OverrideSpecifications(kwargs)
     os.system("rm -rf " + s.resultsFolder)

@@ -4,18 +4,18 @@ import math
 import os
 import matplotlib
 import matplotlib.pyplot as plt
-from Source.Specifications import Specifications
-from Source.PrimaryBeams import PrimaryBeams
-from Source.VisibilitySimulator import VisibilitySimulator
+from maps21cm.Specifications import Specifications
+from maps21cm.PrimaryBeams import PrimaryBeams
+from maps21cm.VisibilitySimulator import VisibilitySimulator
 import ephem
-from Source import Geometry
-from Source.PointSourceCatalog import PointSourceCatalog
-from Source import MatricesForMapmaking as MapMats
-from Source.GlobalSkyModel import GlobalSkyModel
+from maps21cm import Geometry
+from maps21cm.PointSourceCatalog import PointSourceCatalog
+from maps21cm import MatricesForMapmaking as MapMats
+from maps21cm.GlobalSkyModel import GlobalSkyModel
 import scipy.constants as const
 import cPickle as pickle
 import os
-from Mapmaker import Mapmaker
+from maps21cm.Mapmaker import Mapmaker
 
 plt.close("all")
 
@@ -25,11 +25,13 @@ def plotFacet(s,coords,facetMap,plotTitle):
     hp.mollview(mapToPlot, title=plotTitle)
     plt.axis(np.asarray([-1,1,-1,1]) * s.facetSize/50)
 
+mainDirectory = os.path.split(os.path.split(os.path.abspath(__file__))[0])[0] #Directory above this one
+
     
 #Test 1: GSM Only    
 def TestGSMOnly():
     print "\nNow running PSF/Mapmaking Comparison GSM Only..."
-    resultsDirectory = Mapmaker(PSFextensionBeyondFacetFactor = 8, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = False)
+    resultsDirectory = Mapmaker(mainDirectory, PSFextensionBeyondFacetFactor = 8, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = False)
     s, times, ps, Dmatrix, PSF, coaddedMap, pointSourcePSF = MapMats.loadAllResults(resultsDirectory)
     if s.GSMNSIDE < s.mapNSIDE:
         s.GSMNSIDE = s.mapNSIDE
@@ -49,7 +51,7 @@ def TestGSMOnly():
 #Test 2: Point Sources Only
 def TestPointSourcesOnly():
     print "\nNow running PSF/Mapmaking Comparison Point Sources Only..."
-    resultsDirectory = Mapmaker(simulateVisibilitiesWithGSM = False, simulateVisibilitiesWithPointSources = True)
+    resultsDirectory = Mapmaker(mainDirectory, simulateVisibilitiesWithGSM = False, simulateVisibilitiesWithPointSources = True)
     s, times, ps, Dmatrix, PSF, coaddedMap, pointSourcePSF = MapMats.loadAllResults(resultsDirectory)
     convolvedPointSources = np.dot(pointSourcePSF, ps.scaledFluxes)
     #plotFacet(s,coords,convolvedPointSources,"Convolved Sources")
@@ -62,7 +64,7 @@ def TestErrorVsPSFext():
     PSFErrors = []
     PSFextFactors = np.arange(1,10,.5)
     for extFactor in PSFextFactors:
-        resultsDirectory = Mapmaker(PSFextensionBeyondFacetFactor = extFactor, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = True)
+        resultsDirectory = Mapmaker(mainDirectory, PSFextensionBeyondFacetFactor = extFactor, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = True)
         s, times, ps, Dmatrix, PSF, coaddedMap, pointSourcePSF = MapMats.loadAllResults(resultsDirectory)
         convolvedPointSources = np.dot(pointSourcePSF, ps.scaledFluxes)
         if s.GSMNSIDE < s.mapNSIDE:
@@ -80,7 +82,7 @@ def TestErrorVsPSFext():
 
 #Test 4: Error as a function of integrationsPerSnapshot
 def TestErrorVsIntegrations():
-    resultsDirectory = Mapmaker(PSFextensionBeyondFacetFactor = 3, integrationsPerSnapshot = 1, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = True, MaximumAllowedAngleFromFacetCenterToPointingCenter = 4.33, GSMNSIDE = 32, mapNSIDE = 32, facetRA = .01)
+    resultsDirectory = Mapmaker(mainDirectory, PSFextensionBeyondFacetFactor = 3, integrationsPerSnapshot = 1, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = True, MaximumAllowedAngleFromFacetCenterToPointingCenter = 4.33, GSMNSIDE = 32, mapNSIDE = 32, facetRA = .01)
     s, times, ps, Dmatrix, PSF, coaddedMap, pointSourcePSF = MapMats.loadAllResults(resultsDirectory)
     coords = Geometry.Coordinates(s)    
     #plotFacet(s,coords,coaddedMap,'Coadded Map with 1 Integration per Snapshot')    
@@ -88,7 +90,7 @@ def TestErrorVsIntegrations():
     intErrors = []
     integrationsList = np.asarray([3, 9, 27, 81, 243])
     for integrations in integrationsList:
-        resultsDirectory = Mapmaker(PSFextensionBeyondFacetFactor = 3, integrationsPerSnapshot = integrations, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = True, MaximumAllowedAngleFromFacetCenterToPointingCenter = 4.33, GSMNSIDE = 32, mapNSIDE = 32, facetRA = .01)
+        resultsDirectory = Mapmaker(mainDirectory, PSFextensionBeyondFacetFactor = 3, integrationsPerSnapshot = integrations, simulateVisibilitiesWithGSM = True, simulateVisibilitiesWithPointSources = True, MaximumAllowedAngleFromFacetCenterToPointingCenter = 4.33, GSMNSIDE = 32, mapNSIDE = 32, facetRA = .01)
         s, times, ps, Dmatrix, PSF, coaddedMap, pointSourcePSF = MapMats.loadAllResults(resultsDirectory)
         coords = Geometry.Coordinates(s)        
         #plotFacet(s,coords,coaddedMap,'Coadded Map with ' + str(integrations) + ' Integrations per Snapshot')
