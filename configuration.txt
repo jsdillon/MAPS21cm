@@ -35,7 +35,7 @@ antPolList: X Y
 skyPolList: x y
 nPointings: 1
 beamFreqList: 100 110 120 130 140 150 160 170 180 190 200
-beamFileFormat: [MainDirectory]/InstrumentData/Beams/HERA-CST/HERA_DISH_paper_feed_cyl36_[freq]mhz_[skyPol]_healpix.fits
+beamFileFormat: [MainDirectory]/InstrumentData/Beams/HERA-CST/HERA_DISH_paper_feed_cyl36_[freq]mhz_[antPol]_healpix.fits
 beamNSIDE = 128
 
 #FITSbeam: false
