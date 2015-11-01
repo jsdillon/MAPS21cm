@@ -4,18 +4,18 @@ import math
 import os
 import matplotlib
 import matplotlib.pyplot as plt
-from maps21cm.Specifications import Specifications
-from maps21cm.PrimaryBeams import PrimaryBeams
-from maps21cm.VisibilitySimulator import VisibilitySimulator
+from MAPS21cm.Specifications import Specifications
+from MAPS21cm.PrimaryBeams import PrimaryBeams
+from MAPS21cm.VisibilitySimulator import VisibilitySimulator
 import ephem
-from maps21cm import Geometry
-from maps21cm.PointSourceCatalog import PointSourceCatalog
-from maps21cm import MatricesForMapmaking as MapMats
-from maps21cm.GlobalSkyModel import GlobalSkyModel
+from MAPS21cm import Geometry
+from MAPS21cm.PointSourceCatalog import PointSourceCatalog
+from MAPS21cm import MatricesForMapmaking as MapMats
+from MAPS21cm.GlobalSkyModel import GlobalSkyModel
 import scipy.constants as const
 import cPickle as pickle
 import os
-from maps21cm.Mapmaker import Mapmaker
+from MAPS21cm.Mapmaker import Mapmaker
 
 plt.close("all")
 
