@@ -14,6 +14,7 @@ class Specifications:
         self.freq = freq
         config = ConfigParser.ConfigParser()
         self.mainDirectory = directory
+        print directory + "/" + configFilename
         config.read(directory + "/" + configFilename)
         
         #PIPELINE SETTINGS
