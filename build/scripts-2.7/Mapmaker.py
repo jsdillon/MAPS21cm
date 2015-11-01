@@ -1,3 +1,5 @@
+#TODO: Looks like I'm going to need to calculate full-sky PSFs. 
+
 import numpy as np
 import healpy as hp
 import math
@@ -25,10 +27,9 @@ def Mapmaker(freq = 150, useLogFile = False, configFile = "configuration.txt", m
     
     #Load in everything we need, figure out which LSTs to work with
     print "Now working on mapmaking at " + str(freq) + " MHz..."             
-    if mainDirectory == None:
-        mainDirectory = os.path.dirname(os.path.abspath(__file__))    
-    print "Now loading settings from " + mainDirectory + "/" + configFile
-    s = Specifications(mainDirectory, configFile, freq)
+    if mainDirectory is None:
+        mainDirectory = os.path.dirname(os.path.abspath(__file__))
+    s = Specifications(mainDirectory, configFile,freq)
     s.OverrideSpecifications(kwargs)
     os.system("rm -rf " + s.resultsFolder)
     os.system("mkdir " + s.resultsFolder)
@@ -41,16 +42,12 @@ def Mapmaker(freq = 150, useLogFile = False, configFile = "configuration.txt", m
     PBs = PrimaryBeams(s)
     ps = PointSourceCatalog(s,times)
     
-    
     #Simulate or load visibilities
     if s.simulateVisibilitiesWithGSM or s.simulateVisibilitiesWithPointSources:
         visibilities = VisibilitySimulator(s,PBs,ps,times,coords)
     else:
         visibilities = LoadVisibilities(s,times)
     visibilities *= s.convertJyToKFactor
-    
-#    plt.plot(np.real(visibilities))
-#    plt.show()
     
     #Prepare visibilities
     visibilities /= s.convertJyToKFactor #converts to temperature units
@@ -78,13 +75,13 @@ def Mapmaker(freq = 150, useLogFile = False, configFile = "configuration.txt", m
     Dmatrix = np.diag(np.ones((coords.nFacetPixels)) / PSF[coords.mapIndexOfFacetCenter,coords.extendedIndexOfFacetCenter])
     PSF = np.dot(Dmatrix,PSF)
     coaddedMap = np.dot(Dmatrix,coaddedMap)
-    #mapNoiseCovariance = np.dot(PSF[:,coords.mapIndexLocationsInExtendedIndexList],np.transpose(Dmatrix))
+    mapNoiseCovariance = np.dot(PSF[:,coords.mapIndexLocationsInExtendedIndexList],np.transpose(Dmatrix))
     if s.PSFforPointSources and ps.nSources > 0:
         pointSourcePSF = np.dot(Dmatrix,pointSourcePSF)
     
     MapMats.saveAllResults(s,times,ps,Dmatrix,PSF,coaddedMap,pointSourcePSF)
-    if useLogFile:    
-        sys.stdout = sys.__stdout__    
+    if useLogFile:
+        sys.stdout = sys.__stdout__
     return s.resultsFolder
     
     
