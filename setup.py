@@ -15,13 +15,13 @@ class CleanCommand(Command):
         os.system('rm -vrf ./build ./dist ./*.pyc ./*.egg-info')
 
 setup_args = {
-    'name': 'maps21cm',
+    'name': 'MAPS21cm',
     'author': 'Josh Dillon',
     'license': 'Creative Commons Attribution-Noncommercial-Share Alike license',
     'author_email': 'jsdillon@berkeley.edu',
-    'package_dir': {'maps21cm':'Source'},
-    'packages': ['maps21cm'],
-#    'scripts': glob.glob('Scripts/*'),
+    'package_dir': {'MAPS21cm':'Source'},
+    'packages': ['MAPS21cm'],
+    'scripts': glob.glob('Scripts/*'),
     'version': __version__,
     'cmdclass':{'clean': CleanCommand}
 }
@@ -29,3 +29,4 @@ setup_args = {
 
 if __name__== '__main__':
     apply(setup, (), setup_args)
+    os.system('rm -vrf ./build ./dist ./*.egg-info')

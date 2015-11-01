@@ -5,10 +5,10 @@ import os
 import sys
 import matplotlib
 import matplotlib.pyplot as plt
-from Source.Specifications import Specifications
-from Source import Geometry
-from Source.PointSourceCatalog import PointSourceCatalog
-from Source import MatricesForMapmaking as MapMats
+from MAPS21cm.Specifications import Specifications
+from MAPS21cm import Geometry
+from MAPS21cm.PointSourceCatalog import PointSourceCatalog
+from MAPS21cm import MatricesForMapmaking as MapMats
 import scipy.constants as const
 from scipy.integrate import dblquad
 from scipy.special import jv

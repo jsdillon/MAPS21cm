@@ -1,7 +1,7 @@
 import os
 from Mapmaker import Mapmaker
 #from BruteForcePowerSpectrumEstimator import BruteForcePowerSpectrumEstimator
-from Source.Specifications import Specifications
+from MAPS21cm.Specifications import Specifications
 import multiprocessing as mp
 
 #Pick out frequency list
