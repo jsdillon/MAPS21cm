@@ -8,60 +8,7 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 import matplotlib.pyplot as plt
 from astropy.cosmology import Planck13 as cosmo
-
-class Coordinates:
-    """This class figures out the RA, Dec, and Galactic Coordinates of every pixel in the map where the facet center is rotated to lie on the horizon. Detaults to the map resolution, but can also be done for the GSM resolution used."""
-    def __init__(self, s, atResolutionForSimulation = False):
-        if atResolutionForSimulation:
-            self.NSIDE = s.GSMNSIDE
-        else:
-            self.NSIDE = s.mapNSIDE
-        self.mapPixels = 12 * self.NSIDE**2
-
-        healpixCoords = np.transpose(np.asarray(hp.pix2ang(self.NSIDE,np.arange(self.mapPixels))))                
-        self.originalPixelRAs = healpixCoords[:,1]
-        self.originalPixelDecs = -healpixCoords[:,0] + np.pi/2
-        self.originalGalCoords = SkyCoord(frame="icrs", ra=self.originalPixelRAs*u.rad, dec=self.originalPixelDecs*u.rad).transform_to("galactic")                
-        originalPixelVectors = [ np.array([np.cos(self.originalPixelDecs[n]) * np.cos(self.originalPixelRAs[n]), np.cos(self.originalPixelDecs[n]) * np.sin(self.originalPixelRAs[n]), np.sin(self.originalPixelDecs[n])]) for n in range(self.mapPixels)]
-        
-        rotateToPrimeMeridian = np.array([[np.cos(s.facetRAinRad), -np.sin(s.facetRAinRad), 0], [np.sin(s.facetRAinRad), np.cos(s.facetRAinRad), 0],[0, 0, 1]])
-        rotateToEquator = np.array([[np.cos(-s.facetDecinRad), 0, np.sin(-s.facetDecinRad)], [0, 1, 0], [-np.sin(-s.facetDecinRad), 0, np.cos(-s.facetDecinRad)]])
-        rotatedVectors = [np.dot(rotateToPrimeMeridian, np.dot(rotateToEquator,originalPixelVectors[n])) for n in range(self.mapPixels)]
-        
-        self.pixelDecs = np.asarray([np.arcsin(rotatedVectors[n][2]) for n in range(self.mapPixels)])
-        self.pixelRAs = np.asarray([np.arctan2(rotatedVectors[n][1],rotatedVectors[n][0]) for n in range(self.mapPixels)])
-        self.pixelRAs[self.pixelRAs < 0] = self.pixelRAs[self.pixelRAs < 0] + 2*np.pi
-        self.galCoords = SkyCoord(frame="icrs", ra=self.pixelRAs*u.rad, dec=self.pixelDecs*u.rad).transform_to("galactic")                
-        
-        if s.SquareFacetInRADec:
-            deltaDecs = np.abs(self.pixelDecs - s.facetDecinRad)     
-            deltaRAs = np.minimum(np.minimum(np.abs(self.pixelRAs - s.facetRAinRad), np.abs(self.pixelRAs - s.facetRAinRad + 2*np.pi)), np.abs(self.pixelRAs - s.facetRAinRad - 2*np.pi))
-            self.mapIndices = np.flatnonzero((deltaDecs <= s.facetSize * 2*np.pi/360.0/2.0) * (deltaRAs <= s.facetSize * 2*np.pi/360.0/2.0/np.cos(s.facetDecinRad)))
-            self.extendedIndices = np.nonzero((deltaDecs <= s.PSFextensionBeyondFacetFactor*s.facetSize * 2*np.pi/360.0/2.0) * (deltaRAs <= s.PSFextensionBeyondFacetFactor*s.facetSize * 2*np.pi/360.0/2.0/np.cos(s.facetDecinRad)))[0]
-        else:
-            self.mapIndices = hp.query_disc(self.NSIDE, hp.ang2vec(np.pi/2, 0), s.facetSize * 2*np.pi/360.0)
-            self.extendedIndices = hp.query_disc(self.NSIDE, hp.ang2vec(np.pi/2, 0), s.facetSize * 2*np.pi/360.0 * s.PSFextensionBeyondFacetFactor)        
-        self.nFacetPixels = len(self.mapIndices)
-        self.nExtendedPixels = len(self.extendedIndices)
-        
-        extendedIndexDict = dict([ (self.extendedIndices[i], i) for i in range(self.nExtendedPixels) ])
-        self.mapIndexLocationsInExtendedIndexList = np.asarray([extendedIndexDict[mapIndex] for mapIndex in self.mapIndices])
-        self.mapIndexOfFacetCenter = np.dot(self.mapIndices ==  hp.ang2pix(self.NSIDE,np.pi/2,0.0),np.arange(len(self.mapIndices)))
-        self.extendedIndexOfFacetCenter = np.dot(self.extendedIndices ==  hp.ang2pix(self.NSIDE,np.pi/2,0.0),np.arange(len(self.extendedIndices)))
-        
-    def computeCubeCoordinates(self,s,freqs):
-        """ Given a range of frequencies, this function calculates the coordinates of each voxel in cMpc as a function of [freq,pixelIndex] and other useful quantities."""
-        self.freqs = freqs       
-        self.nFreqs = len(freqs)
-        self.nVoxels = self.nFacetPixels * self.nFreqs
-        self.comovingDistances = cosmo.comoving_distance(1420.40575177 / freqs - 1).value
-        self.comovingTransverseDistances = cosmo.comoving_distance(1420.40575177 / freqs - 1).value
-        self.losCoords = np.outer(self.comovingDistances,np.ones(self.nFacetPixels)) #distance from the earth
-        self.xCoords = np.outer(self.comovingTransverseDistances,hp.pix2vec(self.NSIDE, self.mapIndices)[1]) #distance from the facet center, roughly the same direction as RA
-        self.yCoords = np.outer(self.comovingTransverseDistances,hp.pix2vec(self.NSIDE, self.mapIndices)[2]) #distance from the facet center, roughly the same direction as Dec
-        self.losDelta = np.abs(np.mean(np.diff(self.comovingDistances)))
-        self.cubeCoordinates = np.zeros((len(freqs),self.nFacetPixels), dtype=('f8,f8,f8'))
-
+from PrimaryBeams import PrimaryBeams
 
 # Convert RAs and Decs in radians to altitudes and azimuths in radians, given an LST and array location in the specs object
 def convertEquatorialToHorizontal(s,RAs,decs,LST):
@@ -76,6 +23,118 @@ def convertAltAzToCartesian(alts, azs):
     """ Convert list of altitudes and azimuths to cartesian coordinates."""        
     return np.transpose(np.asarray([np.sin(azs)*np.cos(alts), np.cos(azs)*np.cos(alts), np.sin(alts)]))
 
+class Coordinates:
+    """This class figures out the RA, Dec, and Galactic Coordinates of every pixel in the map where the facet center is rotated to lie on the horizon. Detaults to the map resolution, but can also be done for the GSM resolution used."""
+    def __init__(self, s, useAnotherResolution = None):
+        if useAnotherResolution is not None:
+            self.NSIDE = useAnotherResolution
+        else:
+            self.NSIDE = s.mapNSIDE
+        self.mapPixels = 12 * self.NSIDE**2
+
+        healpixCoords = np.transpose(np.asarray(hp.pix2ang(self.NSIDE,np.arange(self.mapPixels))))                
+        originalPixelRAs = healpixCoords[:,1]
+        originalPixelDecs = -healpixCoords[:,0] + np.pi/2
+        #originalGalCoords = SkyCoord(frame="icrs", ra=originalPixelRAs*u.rad, dec=originalPixelDecs*u.rad).transform_to("galactic")                
+        originalPixelVectors = [ np.array([np.cos(originalPixelDecs[n]) * np.cos(originalPixelRAs[n]), np.cos(originalPixelDecs[n]) * np.sin(originalPixelRAs[n]), np.sin(originalPixelDecs[n])]) for n in range(self.mapPixels)]
+        
+        rotateToPrimeMeridian = np.array([[np.cos(s.facetRAinRad), -np.sin(s.facetRAinRad), 0], [np.sin(s.facetRAinRad), np.cos(s.facetRAinRad), 0],[0, 0, 1]])
+        rotateToEquator = np.array([[np.cos(-s.facetDecinRad), 0, np.sin(-s.facetDecinRad)], [0, 1, 0], [-np.sin(-s.facetDecinRad), 0, np.cos(-s.facetDecinRad)]])
+        rotatedVectors = [np.dot(rotateToPrimeMeridian, np.dot(rotateToEquator,originalPixelVectors[n])) for n in range(self.mapPixels)]
+        
+        self.pixelDecs = np.asarray([np.arcsin(rotatedVectors[n][2]) for n in range(self.mapPixels)])
+        self.pixelRAs = np.asarray([np.arctan2(rotatedVectors[n][1],rotatedVectors[n][0]) for n in range(self.mapPixels)])
+        self.pixelRAs[self.pixelRAs < 0] = self.pixelRAs[self.pixelRAs < 0] + 2*np.pi
+        self.galCoords = SkyCoord(frame="icrs", ra=self.pixelRAs*u.rad, dec=self.pixelDecs*u.rad).transform_to("galactic")                
+        
+        if s.SquareFacetInRADec:
+            deltaDecs = np.abs(self.pixelDecs - s.facetDecinRad)     
+            deltaRAs = np.minimum(np.minimum(np.abs(self.pixelRAs - s.facetRAinRad), np.abs(self.pixelRAs - s.facetRAinRad + 2*np.pi)), np.abs(self.pixelRAs - s.facetRAinRad - 2*np.pi))
+            self.facetIndices = np.flatnonzero((deltaDecs <= s.facetSize * 2*np.pi/360.0/2.0) * (deltaRAs <= s.facetSize * 2*np.pi/360.0/2.0/np.cos(s.facetDecinRad)))
+            PSFIndices = np.nonzero((deltaDecs <= s.PSFextensionBeyondFacetFactor*s.facetSize * 2*np.pi/360.0/2.0) * (deltaRAs <= s.PSFextensionBeyondFacetFactor*s.facetSize * 2*np.pi/360.0/2.0/np.cos(s.facetDecinRad)))[0]
+        else:
+            self.facetIndices = hp.query_disc(self.NSIDE, hp.ang2vec(np.pi/2, 0), s.facetSize * 2*np.pi/360.0)
+            PSFIndices = hp.query_disc(self.NSIDE, hp.ang2vec(np.pi/2, 0), s.facetSize * 2*np.pi/360.0 * s.PSFextensionBeyondFacetFactor)        
+        self.nFacetPixels = len(self.facetIndices)
+        self.nPSFPixels = len(PSFIndices)
+        
+        self.facetRAs = self.pixelRAs[self.facetIndices]
+        self.PSFRAs = self.pixelRAs[PSFIndices]
+        self.facetDecs = self.pixelDecs[self.facetIndices]
+        self.PSFDecs = self.pixelDecs[PSFIndices]        
+        
+        PSFIndexDict = dict([ (PSFIndices[i], i) for i in range(self.nPSFPixels) ])
+        self.facetIndexLocationsInPSFIndexList = np.asarray([PSFIndexDict[mapIndex] for mapIndex in self.facetIndices])
+        self.facetIndexOfFacetCenter = np.dot(self.facetIndices ==  hp.ang2pix(self.NSIDE,np.pi/2,0.0),np.arange(len(self.facetIndices)))
+        self.PSFIndexOfFacetCenter = np.dot(PSFIndices ==  hp.ang2pix(self.NSIDE,np.pi/2,0.0),np.arange(len(PSFIndices)))
+        
+    
+    def convertToAdaptiveHEALPix(self, s, times):
+        #figure out the primary beam weights for all pixels in the full-resolution map        
+        middleLSTindex = int(math.floor(len(times.LSTs)/2.0))
+        pixelAlts, pixelAzs = convertEquatorialToHorizontal(s, self.pixelRAs, self.pixelDecs, times.LSTs[middleLSTindex])
+        PBs = PrimaryBeams(s, freq=s.adaptiveHEALPixReferenceFreq)        
+        primaryBeamWeightsAtReferenceFreq = hp.get_interp_val(PBs.beamSquared("X","x",s.pointings[middleLSTindex]), np.pi/2-pixelAlts, pixelAzs)
+
+        averageBeamInFacet = np.min(primaryBeamWeightsAtReferenceFreq[self.facetIndices])
+        idealNSIDEs = s.mapNSIDE * ((primaryBeamWeightsAtReferenceFreq / averageBeamInFacet)**.5)**.5
+        #TODO: investigate different forms of this equation
+         
+        #Determine the goal resolution for every pixel in the full-resolution sky 
+        self.finalNSIDEs = hp.reorder(idealNSIDEs, r2n=True)
+        thisRes = s.adaptiveHEALPixMinNSIDE
+        resAlreadySet = np.zeros(len(self.finalNSIDEs), dtype=bool)
+        self.newPSFRAs = []
+        self.newPSFDecs = []
+        self.newPSFNSIDEs = []
+        while thisRes < s.mapNSIDE:
+            reshapedNSIDEs = np.reshape(self.finalNSIDEs, (12*thisRes**2, -1))
+            reshapedResAlreadySet = np.reshape(resAlreadySet, (12*thisRes**2, -1))
+            thisResCoords = Coordinates(s, useAnotherResolution = thisRes)
+            thisResCoords.pixelRAs = hp.reorder(thisResCoords.pixelRAs, r2n=True) 
+            thisResCoords.pixelDecs = hp.reorder(thisResCoords.pixelDecs, r2n =True)
+            for thisPix in range(12*thisRes**2):
+                if np.all(reshapedNSIDEs[thisPix,:] < thisRes) and not np.all(reshapedResAlreadySet[thisPix,:]):
+                    reshapedNSIDEs[thisPix,:].fill(thisRes)
+                    reshapedResAlreadySet[thisPix,:].fill(True)
+                    #adds new pixel RAs and Decs when the correct resolution has been found
+                    self.newPSFRAs.append(thisResCoords.pixelRAs[thisPix]) 
+                    self.newPSFDecs.append(thisResCoords.pixelDecs[thisPix])
+                    self.newPSFNSIDEs.append(thisRes)
+            #update changed sections
+            self.finalNSIDES = reshapedNSIDEs.flatten()
+            self.resAlreadySet = reshapedResAlreadySet.flatten()
+            thisRes *= 2
+        
+        self.finalNSIDEs[np.logical_not(resAlreadySet)] = s.mapNSIDE #all other pixels get mapNSIDE
+        self.finalNSIDEs = hp.reorder(self.finalNSIDEs, n2r=True)
+        self.finalNSIDEs[self.facetIndices] = -1 #flag to make sure facet is at the right resolution
+ 
+        #Combine the unmodified PSF coordinates and the new ones, the facet pixels always come first and in order
+        self.PSFRAs = np.append(self.pixelRAs[self.facetIndices], np.append(self.pixelRAs[self.finalNSIDEs == s.mapNSIDE], np.asarray(self.newPSFRAs)))
+        self.PSFDecs = np.append(self.pixelDecs[self.facetIndices], np.append(self.pixelDecs[self.finalNSIDEs == s.mapNSIDE], np.asarray(self.newPSFDecs)))
+        self.newPSFNSIDEs = np.append(s.mapNSIDE * np.ones(self.nFacetPixels + np.sum(self.finalNSIDEs == s.mapNSIDE)), np.asarray(self.newPSFNSIDEs))
+        self.finalNSIDEs[self.facetIndices] = s.mapNSIDE #remove flags   
+        #newPSFNSIDEs has len(PSF) when finalNSIDEs has len(mapPixels)  
+        
+        #Update other class items:
+        self.nPSFPixels = len(self.PSFRAs)
+        self.facetIndexLocationsInPSFIndexList = np.arange(self.nFacetPixels)
+        self.PSFIndexOfFacetCenter = self.facetIndexOfFacetCenter
+
+        
+    def computeCubeCoordinates(self,s,freqs):
+        """ Given a range of frequencies, this function calculates the coordinates of each voxel in cMpc as a function of [freq,pixelIndex] and other useful quantities."""
+        self.freqs = freqs       
+        self.nFreqs = len(freqs)
+        self.nVoxels = self.nFacetPixels * self.nFreqs
+        self.comovingDistances = cosmo.comoving_distance(1420.40575177 / freqs - 1).value
+        self.comovingTransverseDistances = cosmo.comoving_distance(1420.40575177 / freqs - 1).value
+        self.losCoords = np.outer(self.comovingDistances,np.ones(self.nFacetPixels)) #distance from the earth
+        self.xCoords = np.outer(self.comovingTransverseDistances,hp.pix2vec(self.NSIDE, self.facetIndices)[1]) #distance from the facet center, roughly the same direction as RA
+        self.yCoords = np.outer(self.comovingTransverseDistances,hp.pix2vec(self.NSIDE, self.facetIndices)[2]) #distance from the facet center, roughly the same direction as Dec
+        self.losDelta = np.abs(np.mean(np.diff(self.comovingDistances)))
+        self.cubeCoordinates = np.zeros((len(freqs),self.nFacetPixels), dtype=('f8,f8,f8'))
 
 class Snapshot:
     """ This class has information about a single snapshot. """
@@ -139,3 +198,23 @@ def rephaseVisibilitiesToSnapshotCenter(s,visibilities,times):
             rephaseFactors = np.exp(-1j * s.k * s.baselines.dot(deltaTheta))
             visibilities[snapshot.LSTindices[t],:] = visibilities[snapshot.LSTindices[t],:] * rephaseFactors
 
+
+#if __name__ == "__main__":
+#    from Specifications import Specifications    
+#    import matplotlib
+#    import matplotlib.pyplot as plt
+#    plt.close('all')    
+#    mainDirectory = "../"
+#    freq = 150
+#    configFile = "configuration.txt"    
+#    s = Specifications(mainDirectory, configFile,freq)
+#    times = Times(s)
+#    times.CutOutUnusedLSTsAndGroupIntoSnapshots(s)
+#    coords = Coordinates(s)
+#    if s.useAdaptiveHEALPixForPSF: coords.convertToAdaptiveHEALPix(s, times)
+#    #hp.mollview(coords.finalNSIDEs)
+#    
+#    plt.scatter(180/np.pi*np.asarray(coords.newPSFRAs), 180/np.pi*np.asarray(coords.newPSFDecs),c=u'r')
+#    plt.scatter(180/np.pi*coords.PSFRAs, 180/np.pi*coords.PSFDecs)
+#    print len(coords.PSFDecs)
+#    print len(coords.newPSFDecs)

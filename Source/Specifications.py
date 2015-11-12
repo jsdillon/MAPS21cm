@@ -78,6 +78,10 @@ class Specifications:
         self.PSFextensionBeyondFacetFactor = config.getfloat('Mapmaking Specifications', 'PSFextensionBeyondFacetFactor')    
         self.integrationsPerSnapshot = config.getint('Mapmaking Specifications', 'integrationsPerSnapshot')
         self.PSFforPointSources = config.getboolean('Mapmaking Specifications','PSFforPointSources')
+        self.useAdaptiveHEALPixForPSF = config.getboolean('Mapmaking Specifications','useAdaptiveHEALPixForPSF')
+        self.adaptiveHEALPixMinNSIDE = config.getint('Mapmaking Specifications', 'adaptiveHEALPixMinNSIDE')
+        self.adaptiveHEALPixReferenceFreq = config.getfloat('Mapmaking Specifications', 'adaptiveHEALPixReferenceFreq')    
+
         
         #OUTPUT SETTINGS
         self.resultsFolderFormat = config.get('Mapmaking Specifications','resultsFolder').replace('[MainDirectory]',self.mainDirectory)    

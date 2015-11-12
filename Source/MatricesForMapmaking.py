@@ -37,13 +37,16 @@ def calculateNInv(s, snapshot):
         return np.asarray([np.sum((s.noisePerAntenna[:,s.allBaselinePairs[b,0]] * s.noisePerAntenna[:,s.allBaselinePairs[b,1]])**(-1), axis=0) for b in range(len(s.baselines))])
 
 def calculateKAtranspose(s,snapshot,coords,PBs):
-    """This function computes K_PSF * A^t, which maps baselines at the given snapshot central index to the extended facet.
+    """This function computes K_PSF * A^t, which maps baselines at the given snapshot central index to the PSF pixels.
     It is worth nothing that the Fourier convention is based on A having e^ib.k, so A^t has e^-ib.k = e^i|k|b.theta_hat, as we see here."""
-    realSpaceDiagonalPart = np.ones(coords.nExtendedPixels) * 4*np.pi / 12.0 / coords.NSIDE**2 / s.convertJyToKFactor
-    extendedAlts, extendedAzs = Geometry.convertEquatorialToHorizontal(s, coords.pixelRAs[coords.extendedIndices], coords.pixelDecs[coords.extendedIndices],snapshot.centralLST)
-    extendedCartVecs = Geometry.convertAltAzToCartesian(extendedAlts, extendedAzs)
-    realSpaceDiagonalPart *= hp.get_interp_val(PBs.beamSquared("X","x",s.pointings[snapshot.centralLSTIndex]), np.pi/2-extendedAlts, extendedAzs)    
-    KAtranspose = np.dot(np.diag(realSpaceDiagonalPart), np.exp(1j * s.k * np.dot(extendedCartVecs,np.transpose(s.baselines))))
+    if s.useAdaptiveHEALPixForPSF:    
+        realSpaceDiagonalPart = np.ones(coords.nPSFPixels) * 4*np.pi / 12.0 / coords.newPSFNSIDEs**2 / s.convertJyToKFactor
+    else:
+        realSpaceDiagonalPart = np.ones(coords.nPSFPixels) * 4*np.pi / 12.0 / s.mapNSIDE**2 / s.convertJyToKFactor
+    PSFAlts, PSFAzs = Geometry.convertEquatorialToHorizontal(s, coords.PSFRAs, coords.PSFDecs, snapshot.centralLST)
+    PSFCartVecs = Geometry.convertAltAzToCartesian(PSFAlts, PSFAzs)
+    realSpaceDiagonalPart *= hp.get_interp_val(PBs.beamSquared("X","x",s.pointings[snapshot.centralLSTIndex]), np.pi/2-PSFAlts, PSFAzs)
+    KAtranspose = np.dot(np.diag(realSpaceDiagonalPart), np.exp(1j * s.k * np.dot(PSFCartVecs,np.transpose(s.baselines))))
     return KAtranspose
     
 def calculatePSAmatrix(s,snapshot,ps,PBs):

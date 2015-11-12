@@ -116,11 +116,11 @@ def BruteForcePowerSpectrumEstimator(configFile = "configuration.txt", **kwargs)
     
         #plt.plot(freqs,coords.comovingDistances,'.')
     
-#    plt.scatter(180/np.pi*coords.pixelRAs[coords.mapIndices], 180/np.pi*coords.pixelDecs[coords.mapIndices])
+#    plt.scatter(180/np.pi*coords.pixelRAs[coords.facetIndices], 180/np.pi*coords.pixelDecs[coords.facetIndices])
 #    plt.figure()    
-#    plt.scatter(180/np.pi*coords.pixelRAs[coords.mapIndices], coords.xCoords[0,:])
+#    plt.scatter(180/np.pi*coords.pixelRAs[coords.facetIndices], coords.xCoords[0,:])
 #    plt.figure()    
-#    plt.scatter(180/np.pi*coords.pixelDecs[coords.mapIndices], coords.yCoords[0,:])
+#    plt.scatter(180/np.pi*coords.pixelDecs[coords.facetIndices], coords.yCoords[0,:])
 #
 #
 

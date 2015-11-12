@@ -66,14 +66,14 @@ pointSourceBeamWeightedFluxLimitAtReferenceFreq: 1
 simulateVisibilitiesWithGSM: true
 simulateVisibilitiesWithPointSources: false
 GSMlocation: [MainDirectory]/ObservationData/GSM/
-GSMNSIDE: 32
+GSMNSIDE: 128
 
 #########################################################################################################
 [Mapmaking Specifications]
 #########################################################################################################
 
 #FACET SETTINGS
-facetRA: 60
+facetRA: 50
 #60
 #50.6737
 #266.2417
@@ -83,10 +83,17 @@ SquareFacetInRADec: False
 MaximumAllowedAngleFromFacetCenterToPointingCenter: .02
 
 #MAPMAKING AND PSF SETTINGS
-mapNSIDE: 32
-PSFextensionBeyondFacetFactor = 2
+mapNSIDE: 128
 integrationsPerSnapshot = 1
 PSFforPointSources = true
+PSFextensionBeyondFacetFactor = 4.44
+#Only relevant if not using adaptive HEALPix
+
+useAdaptiveHEALPixForPSF = true
+adaptiveHEALPixMinNSIDE = 4
+adaptiveHEALPixReferenceFreq = 150
+
+
 
 #POLARIZATION SETTINGS
 makeMapOfStokesIOnly: true
