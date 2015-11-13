@@ -77,8 +77,7 @@ class Coordinates:
         primaryBeamWeightsAtReferenceFreq = hp.get_interp_val(PBs.beamSquared("X","x",s.pointings[middleLSTindex]), np.pi/2-pixelAlts, pixelAzs)
 
         averageBeamInFacet = np.min(primaryBeamWeightsAtReferenceFreq[self.facetIndices])
-        idealNSIDEs = s.mapNSIDE * ((primaryBeamWeightsAtReferenceFreq / averageBeamInFacet)**.5)**.5
-        #TODO: investigate different forms of this equation
+        idealNSIDEs = s.mapNSIDE * ((primaryBeamWeightsAtReferenceFreq / averageBeamInFacet)**.5)**s.adaptiveHEALPixBeamPowerScaling
          
         #Determine the goal resolution for every pixel in the full-resolution sky 
         self.finalNSIDEs = hp.reorder(idealNSIDEs, r2n=True)
@@ -87,9 +86,11 @@ class Coordinates:
         self.newPSFRAs = []
         self.newPSFDecs = []
         self.newPSFNSIDEs = []
+        self.newPSFIndices = -100 * np.ones(len(self.finalNSIDEs), dtype=int) #this quatity is a full-res map that tells which adaptive pixel index covers it. One to one but not onto.
         while thisRes < s.mapNSIDE:
             reshapedNSIDEs = np.reshape(self.finalNSIDEs, (12*thisRes**2, -1))
             reshapedResAlreadySet = np.reshape(resAlreadySet, (12*thisRes**2, -1))
+            reshapedNewPSFIndices = np.reshape(self.newPSFIndices, (12*thisRes**2, -1))
             thisResCoords = Coordinates(s, useAnotherResolution = thisRes)
             thisResCoords.pixelRAs = hp.reorder(thisResCoords.pixelRAs, r2n=True) 
             thisResCoords.pixelDecs = hp.reorder(thisResCoords.pixelDecs, r2n =True)
@@ -101,26 +102,47 @@ class Coordinates:
                     self.newPSFRAs.append(thisResCoords.pixelRAs[thisPix]) 
                     self.newPSFDecs.append(thisResCoords.pixelDecs[thisPix])
                     self.newPSFNSIDEs.append(thisRes)
+                    reshapedNewPSFIndices[thisPix,:].fill(len(self.newPSFRAs)-1)
             #update changed sections
             self.finalNSIDES = reshapedNSIDEs.flatten()
             self.resAlreadySet = reshapedResAlreadySet.flatten()
+            self.newPSFIndices = reshapedNewPSFIndices.flatten()
             thisRes *= 2
         
         self.finalNSIDEs[np.logical_not(resAlreadySet)] = s.mapNSIDE #all other pixels get mapNSIDE
         self.finalNSIDEs = hp.reorder(self.finalNSIDEs, n2r=True)
+        self.newPSFIndices = hp.reorder(self.newPSFIndices, n2r=True)
         self.finalNSIDEs[self.facetIndices] = -1 #flag to make sure facet is at the right resolution
+        
  
         #Combine the unmodified PSF coordinates and the new ones, the facet pixels always come first and in order
         self.PSFRAs = np.append(self.pixelRAs[self.facetIndices], np.append(self.pixelRAs[self.finalNSIDEs == s.mapNSIDE], np.asarray(self.newPSFRAs)))
         self.PSFDecs = np.append(self.pixelDecs[self.facetIndices], np.append(self.pixelDecs[self.finalNSIDEs == s.mapNSIDE], np.asarray(self.newPSFDecs)))
         self.newPSFNSIDEs = np.append(s.mapNSIDE * np.ones(self.nFacetPixels + np.sum(self.finalNSIDEs == s.mapNSIDE)), np.asarray(self.newPSFNSIDEs))
-        self.finalNSIDEs[self.facetIndices] = s.mapNSIDE #remove flags   
+      
+        self.newPSFIndices += len(self.pixelRAs[self.finalNSIDEs == s.mapNSIDE])
+        self.newPSFIndices[self.finalNSIDEs == s.mapNSIDE] = np.arange(len(self.pixelRAs[self.finalNSIDEs == s.mapNSIDE]))
+        self.newPSFIndices += len(self.pixelRAs[self.facetIndices])
+        self.newPSFIndices[self.facetIndices] = np.arange(len(self.pixelRAs[self.facetIndices]))
+        
+        self.finalNSIDEs[self.facetIndices] = s.mapNSIDE #remove flags               
         #newPSFNSIDEs has len(PSF) when finalNSIDEs has len(mapPixels)  
+        
+
+        
+        
         
         #Update other class items:
         self.nPSFPixels = len(self.PSFRAs)
         self.facetIndexLocationsInPSFIndexList = np.arange(self.nFacetPixels)
         self.PSFIndexOfFacetCenter = self.facetIndexOfFacetCenter
+        
+        if s.makeFacetSameAsAdaptivePSF: #update the "facet" to match the PSF
+            self.facetRAs = self.PSFRAs
+            self.facetDecs = self.PSFDecs
+            self.nFacetPixels = self.nPSFPixels
+            self.facetIndexLocationsInPSFIndexList = np.arange(self.nFacetPixels)
+            self.facetIndices = []
 
         
     def computeCubeCoordinates(self,s,freqs):
@@ -214,7 +236,11 @@ def rephaseVisibilitiesToSnapshotCenter(s,visibilities,times):
 #    if s.useAdaptiveHEALPixForPSF: coords.convertToAdaptiveHEALPix(s, times)
 #    #hp.mollview(coords.finalNSIDEs)
 #    
-#    plt.scatter(180/np.pi*np.asarray(coords.newPSFRAs), 180/np.pi*np.asarray(coords.newPSFDecs),c=u'r')
-#    plt.scatter(180/np.pi*coords.PSFRAs, 180/np.pi*coords.PSFDecs)
-#    print len(coords.PSFDecs)
-#    print len(coords.newPSFDecs)
+#    #plt.scatter(180/np.pi*np.asarray(coords.newPSFRAs), 180/np.pi*np.asarray(coords.newPSFDecs),c=u'r')
+#    ##plt.scatter(180/np.pi*coords.PSFRAs, 180/np.pi*coords.PSFDecs)
+#    #print len(coords.PSFDecs)
+#    #print len(coords.newPSFDecs)
+#    hp.mollview(coords.newPSFIndices)
+#    hp.mollview(coords.finalNSIDEs)
+#    hp.mollview(coords.newPSFNSIDEs[coords.newPSFIndices]s)
+#    print np.linalg.norm(coords.newPSFNSIDEs[coords.newPSFIndices] - coords.finalNSIDEs) / np.linalg.norm(coords.finalNSIDEs)

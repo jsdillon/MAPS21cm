@@ -81,7 +81,8 @@ class Specifications:
         self.useAdaptiveHEALPixForPSF = config.getboolean('Mapmaking Specifications','useAdaptiveHEALPixForPSF')
         self.adaptiveHEALPixMinNSIDE = config.getint('Mapmaking Specifications', 'adaptiveHEALPixMinNSIDE')
         self.adaptiveHEALPixReferenceFreq = config.getfloat('Mapmaking Specifications', 'adaptiveHEALPixReferenceFreq')    
-
+        self.adaptiveHEALPixBeamPowerScaling = config.getfloat('Mapmaking Specifications', 'adaptiveHEALPixBeamPowerScaling')
+        self.makeFacetSameAsAdaptivePSF = config.getboolean('Mapmaking Specifications', 'makeFacetSameAsAdaptivePSF')
         
         #OUTPUT SETTINGS
         self.resultsFolderFormat = config.get('Mapmaking Specifications','resultsFolder').replace('[MainDirectory]',self.mainDirectory)    

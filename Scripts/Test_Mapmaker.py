@@ -22,10 +22,13 @@ from astropy.coordinates import SkyCoord
 plt.close("all")
 
 def plotFacet(s,coords,facetMap,plotTitle):
-    mapToPlot = np.zeros(coords.mapPixels)
-    mapToPlot[coords.facetIndices] = facetMap    
-    hp.mollview(mapToPlot, title=plotTitle)
-    plt.axis(np.asarray([-1,1,-1,1]) * s.facetSize/50)
+    if s.makeFacetSameAsAdaptivePSF and s.useAdaptiveHEALPixForPSF:
+        hp.mollview(facetMap[coords.newPSFIndices], title=plotTitle)
+    else:
+        mapToPlot = np.zeros(coords.mapPixels)
+        mapToPlot[coords.facetIndices] = facetMap    
+        hp.mollview(mapToPlot, title=plotTitle)
+        plt.axis(np.asarray([-1,1,-1,1]) * s.facetSize/50)
 
 mainDirectory = os.path.split(os.path.split(os.path.abspath(__file__))[0])[0] #Directory above this one
 
@@ -35,13 +38,10 @@ def AdaptiveResolutionGSM(s, coords):
     NSIDE = s.adaptiveHEALPixMinNSIDE
     interpoltedGSMRotated = np.zeros(coords.nPSFPixels)    
     while NSIDE <= s.mapNSIDE:
-        print "working on NSIDE = " + str(NSIDE) + "..."        
         thisGSM = GlobalSkyModel(s.freq, s.GSMlocation, NSIDE).hpMap
         interpoltedGSMRotated[coords.newPSFNSIDEs==NSIDE] = hp.get_interp_val(thisGSM,-galCoords[coords.newPSFNSIDEs==NSIDE].b.radian+np.pi/2, galCoords[coords.newPSFNSIDEs==NSIDE].l.radian)
         NSIDE *= 2
-    plt.figure()
-    plt.scatter(coords.PSFRAs, coords.PSFDecs, c = interpoltedGSMRotated, s = 1024 / coords.newPSFNSIDEs, edgecolor='none')
-    plt.colorbar()
+
     return interpoltedGSMRotated
     
 #Test 1: GSM Only    
@@ -69,7 +69,7 @@ def TestGSMOnly():
     
     plotFacet(s,coords,convolvedGSM,"Convolved GSM")
     plotFacet(s,coords,coaddedMap,"Coadded Map")
-    plotFacet(s,coords,coaddedMap/convolvedGSM,"Coadded Map / Convolved GSM")
+    plotFacet(s,coords,coaddedMap - convolvedGSM,"Coadded Map - Convolved GSM")
     print "Error = " + str(np.linalg.norm(coaddedMap - convolvedGSM)/np.linalg.norm(convolvedGSM))
     
 #    plt.figure()
