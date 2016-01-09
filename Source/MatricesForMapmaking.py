@@ -71,13 +71,13 @@ def saveAllResults(s,times,ps,Dmatrix,PSF,coaddedMap,pointSourcePSF):
 
 def loadAllResults(resultsFolder):
     s = pickle.load(open(resultsFolder + "specifications.p","rb"))
-    times = pickle.load( open(s.resultsFolder + "times.p","rb"))
-    ps = pickle.load(open(s.resultsFolder + "pointSourceCatalog.p","rb"))
-    Dmatrix = np.load(s.resultsFolder + "Dmatrix.npy")
-    PSF = np.load(s.resultsFolder + "PSF.npy")
-    coaddedMap = np.load(s.resultsFolder + "coaddedMap.npy")
+    times = pickle.load( open(resultsFolder + "times.p","rb"))
+    ps = pickle.load(open(resultsFolder + "pointSourceCatalog.p","rb"))
+    Dmatrix = np.load(resultsFolder + "Dmatrix.npy")
+    PSF = np.load(resultsFolder + "PSF.npy")
+    coaddedMap = np.load(resultsFolder + "coaddedMap.npy")
     if s.PSFforPointSources and ps.nSources>0:
-        pointSourcePSF = np.load(s.resultsFolder + "pointSourcePSF.npy")
+        pointSourcePSF = np.load(resultsFolder + "pointSourcePSF.npy")
         return s, times, ps, Dmatrix, PSF, coaddedMap, pointSourcePSF
     else:
         return s, times, ps, Dmatrix, PSF, coaddedMap, []

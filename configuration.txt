@@ -1,3 +1,4 @@
+
 # 			SPECIFICATIONS FOR JOINT MAPMAKING AND POWER SPECTRUM ESTIMATION PIPELINE
 
 #########################################################################################################

@@ -8,8 +8,6 @@ from scipy.interpolate import interp1d
 
 class GlobalSkyModel:
     """Computes GSM from 3 principal components appropriately weighted. 
-    
-    Works exactly as the fortran code is described in the comments. I couldn't directly check because I couldn't get the fortran to compile. TODO later.
 
     Takes the frequency (in MHz), the location of the HEALPIX .fits files (which are in my github under ObservationData/GSM), and the HealPIX NSIDE desired.
     

@@ -1,5 +1,3 @@
-#TODO: Looks like I'm going to need to calculate full-sky PSFs. 
-
 import numpy as np
 import healpy as hp
 import math
